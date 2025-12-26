@@ -240,6 +240,9 @@ replay:
   storage_mode: tokens_only
   lazy_tokenization: false
 
+  # Eviction Strategy
+  eviction_strategy: "fifo"  # FIFO is mainstream
+
   # N-Step Returns (Outer Layer)
   enable_nstep: true
   n_step: 5  # Look ahead 5 steps
@@ -250,14 +253,10 @@ replay:
   # Age-Based Freshness Weighting
   age_decay: 500.0  # Smaller for FrozenLake (fast training)
 
-  # Advantage-Based Priority Update
-  use_advantage_priority: true  # Enable advantage-based priority after training
-
-  # Initial Priority Function (at push time)
-  priority:
-    function: reward  # Use |reward| or |nstep_returns| as initial priority
-    alpha: 0.6  # Priority exponent
-    use_importance_weights: true
-    importance_beta: 0.4
+  # Priority Function Configuration (flat structure)
+  priority_function: "reward"
+  priority_exponent: 0.6
+  importance_sampling_correction: true
+  importance_beta: 0.4
 
 

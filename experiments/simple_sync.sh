@@ -3,7 +3,7 @@
 # 简单的 WandB 一次性同步脚本
 # 不需要文件监控，直接同步指定的 run
 
-set -e
+set -ew
 
 # 配置 - 直接填写绝对路径
 WANDB_DIR="E:\code_project\python_code\local_roll_dev\roll_dev\experiments\nq_search_replay\output\offline-run-20251024_131308-osebgtlq"

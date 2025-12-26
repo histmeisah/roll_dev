@@ -55,7 +55,7 @@ async_generation_ratio: 1
 # Batch and sequence settings
 rollout_batch_size: 128
 val_batch_size: 128
-sequence_length: 12800
+sequence_length: 4096  # Step-level: single step length. Full traj ~20k tokens / 5 steps = ~4k per step
 
 # RL algorithm settings - REINFORCE++
 advantage_clip: 20

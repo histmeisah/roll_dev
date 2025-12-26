@@ -284,7 +284,7 @@ offpolicy_monitor:
 
 replay:
   enabled: true
-  capacity: 10000  # Increased from 5000 for better diversity with smart eviction
+  capacity: 10000  # Buffer stores ~78 batches (10000/128)
   min_size: ${rollout_batch_size}
   train_steps_per_env_step: 2  # Train 2 times per rollout (replay ratio = 2.0)
   use_rollout_batch_size: true
@@ -292,21 +292,25 @@ replay:
   storage_mode: tokens_only
   lazy_tokenization: false
 
+  # Eviction Strategy: how to remove samples when buffer is full
+  # - "fifo": First-In-First-Out (default, mainstream: OpenAI Baselines, Stable-Baselines3, RLlib)
+  # - "smart": Consider age + priority + sample_count (experimental)
+  eviction_strategy: "fifo"
+
   # Age-Based Freshness Weighting
   # Decay formula: effective_priority = intrinsic_priority × exp(-age / age_decay)
-  # With smart eviction, we can use slightly more aggressive age decay
-  age_decay: 1500.0  # Reduced from 2000.0 for better freshness emphasis with smart eviction
+  # Based on "Revisiting Fundamentals of Experience Replay": data freshness is critical
+  age_decay: 40.0  # Aggressive decay: old data (>40 steps) significantly down-weighted
 
-  # Advantage-Based Priority Update
-  # Enable two-stage priority: reward (initial) → advantage (after training)
-  use_advantage_priority: true
-
-  # Initial Priority Function (at push time)
-  priority:
-    function: reward  # Use |episode_reward| as initial priority before training
-    alpha: 0.6  # Priority exponent (0.0=uniform, 1.0=full prioritization)
-    use_importance_weights: true  # Apply importance sampling weights
-    importance_beta: 0.4  # IS weight exponent (β ∈ [0.4, 1.0])
+  # Priority Function Configuration (flat structure)
+  # priority_function determines both initial priority AND update metric automatically
+  # - "reward": uses |reward| as priority, updates with reward after training
+  # - "advantage": uses |advantage| as priority (computed after training)
+  # - "uniform/lifo/fifo/recency/length": no update needed
+  priority_function: "reward"
+  priority_exponent: 0.6  # α: Priority exponent (0.0=uniform, 1.0=full prioritization)
+  importance_sampling_correction: true  # Apply importance sampling weights
+  importance_beta: 0.4  # β: IS weight exponent (β ∈ [0.4, 1.0])
 
   # =========================================================================
   # OFF-POLICY FILTER CONFIGURATION (New Feature)

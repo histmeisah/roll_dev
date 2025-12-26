@@ -291,15 +291,14 @@ replay:
   storage_mode: tokens_only
   lazy_tokenization: false
 
+  # Eviction Strategy: how to remove samples when buffer is full
+  eviction_strategy: "fifo"  # FIFO is mainstream (OpenAI Baselines, Stable-Baselines3, RLlib)
+
   # Age-Based Freshness Weighting
   age_decay: 500.0  # Balance between fresh and old samples
 
-  # Advantage-Based Priority Update
-  use_advantage_priority: true  # Use REINFORCE advantages to update priorities
-
-  # Initial Priority Function
-  priority:
-    function: reward  # Use reward as initial priority
-    alpha: 0.6  # Priority exponent
-    use_importance_weights: true
-    importance_beta: 0.4
+  # Priority Function Configuration (flat structure)
+  priority_function: "reward"
+  priority_exponent: 0.6
+  importance_sampling_correction: true
+  importance_beta: 0.4

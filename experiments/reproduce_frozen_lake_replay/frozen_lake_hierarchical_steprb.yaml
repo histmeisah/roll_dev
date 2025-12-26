@@ -290,6 +290,9 @@ replay:
   storage_mode: tokens_only
   lazy_tokenization: false
 
+  # Eviction Strategy
+  eviction_strategy: "fifo"  # FIFO is mainstream
+
   # N-Step Returns (optional, can be disabled for hierarchical RL)
   enable_nstep: false  # Disable for pure hierarchical RL
   n_step: 5
@@ -300,12 +303,8 @@ replay:
   # Age-Based Freshness Weighting
   age_decay: 500.0  # Smaller for FrozenLake
 
-  # Advantage-Based Priority Update
-  use_advantage_priority: true  # Use advantages from hierarchical RL
-
-  # Initial Priority Function
-  priority:
-    function: uniform  # Start with uniform, will be updated by advantages
-    alpha: 0.6
-    use_importance_weights: true
-    importance_beta: 0.4
+  # Priority Function Configuration (flat structure)
+  priority_function: "uniform"
+  priority_exponent: 0.6
+  importance_sampling_correction: true
+  importance_beta: 0.4

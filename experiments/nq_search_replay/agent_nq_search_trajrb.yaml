@@ -26,9 +26,9 @@ system_envs:
 track_with: wandb
 tracker_kwargs:
   project: roll-agentic-nq-search
-  name: ${timestamp}_traj_replay_buffer_offpolicy_monitoring_trajectory_trainer
-  notes: "NQ Search with Trajectory ReplayBuffer + old_prob(trajectory+trainer)"
-  tags: [agentic, roll, nq_search, replay, traj_rb, retrieval_qa]
+  name: ${timestamp}_standard_PER_constant_lr
+  notes: "NQ Search with Standard PER (advantage priority, IS correction) + Constant LR"
+  tags: [agentic, roll, nq_search, per, priority_replay, constant_lr]
   mode: offline
   dir: ${base_output_dir}/${timestamp}/wandb
 
@@ -61,10 +61,13 @@ sequence_length: 12800    # 降低序列长度以节省显存
 advantage_clip: 20
 ppo_epochs: 1
 adv_estimator: "reinforce"
-init_kl_coef: 0.0
 whiten_advantages: true
 entropy_loss_coef: 0
 max_grad_norm: 1.0
+
+# KL Divergence Constraint
+use_kl_loss: true
+kl_loss_coef: 0.001
 
 # =============================================================================
 # MODEL CONFIGURATION
@@ -84,8 +87,8 @@ actor_train:
     weight_decay: 0
     per_device_train_batch_size: 1   # 全局有效batch size (Global Effective Batch Size) = per_device_train_batch_size × gradient_accumulation_steps × num_gpus
     gradient_accumulation_steps: 16   #
-    warmup_steps: 10
-    lr_scheduler_type: cosine
+    warmup_steps: 0
+    lr_scheduler_type: constant  # 恒定学习率，适合 off-policy 训练
   data_args:
     template: qwen2_5
   strategy_args:
@@ -286,36 +289,35 @@ offpolicy_monitor:
 # =============================================================================
 # TRAJECTORY REPLAY BUFFER CONFIGURATION
 # =============================================================================
-# See detailed documentation: roll_dev/ROLL/docs/replay_buffer.md
-# Following OpenAI Baselines and RLlib design patterns for priority-based replay
+# Standard Prioritized Experience Replay (PER) following DeepMind 2016 paper
+# See documentation: roll_dev/ROLL/docs/replay_buffer.md
 
 replay:
   enabled: true
   capacity: 50000  # Max trajectories stored
   min_size: ${rollout_batch_size}  # Min samples before training
-  train_steps_per_env_step: 1  # Training iterations per rollout (1=50% replay, 3=75% replay)
+  train_steps_per_env_step: 2  # 每次 rollout 训练 2 次，提高样本利用率
   use_rollout_batch_size: true  # Use rollout_batch_size for sampling
 
-  # Prioritized Experience Replay (PER) Configuration
-  # See docs: roll_dev/ROLL/docs/replay_buffer.md for details
-  priority:
-    # Sampling strategy (which experiences to sample)
-    function: lifo  # lifo | fifo | uniform | reward | td_error | recency | combined | advantage | length
-    alpha: 0.6  # Priority exponent (0.0=uniform, 0.6=moderate, 1.0=full prioritization)
+  # Eviction Strategy
+  eviction_strategy: "fifo"  # FIFO 是 PER 的标准实现 (OpenAI Baselines, RLlib)
 
-    # Function-specific parameters
-    kwargs:
-      # For recency: decay_rate: 0.001
-      # For combined: reward_weight: 0.7, recency_weight: 0.3, decay_rate: 0.001
-      # For length: prefer_long: true
+  # ==========================================================================
+  # Prioritized Experience Replay (PER) - Standard Configuration
+  # ==========================================================================
+  # 标准 PER 公式: P(i) = p_i^α / Σp_k^α
+  # Importance Sampling: w_i = (N × P(i))^(-β) / max_w
 
-    # Priority update after training (feedback loop for PER)
-    update_after_train: false  # Enable priority backfill from training loss
-    update_metric: loss  # loss | advantage | kl | reward
+  priority_function: "advantage"  # 使用 |advantage| 作为优先级 (标准 PER)
+  priority_exponent: 0.6  # α: 0.6 是 DeepMind 推荐值 (0=uniform, 1=full prioritization)
 
-    # Importance sampling (off-policy bias correction)
-    use_importance_weights: false  # Apply IS weights to training loss
-    importance_beta: 0.4  # Beta for IS weights (0.4→1.0 annealing)
+  # Importance Sampling Correction (off-policy bias 修正)
+  importance_sampling_correction: true  # 启用 IS 权重修正采样偏差
+  importance_beta: 0.4  # β: 从 0.4 开始，应逐步退火到 1.0
+
+  # Age Decay (可选，默认关闭以使用标准 PER)
+  enable_age_decay: false  # 关闭 age decay，使用标准 PER
+  age_decay: 1000.0  # 仅在 enable_age_decay=true 时生效
 
   # Other settings
   sampling_mode: "trajectory"  # trajectory | step

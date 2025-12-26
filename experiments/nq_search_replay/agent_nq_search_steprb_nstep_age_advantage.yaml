@@ -359,6 +359,9 @@ replay:
   storage_mode: tokens_only
   lazy_tokenization: false
 
+  # Eviction Strategy: how to remove samples when buffer is full
+  eviction_strategy: "fifo"  # FIFO is mainstream (OpenAI Baselines, Stable-Baselines3, RLlib)
+
   # N-Step Returns (Outer Layer)
   # Two-layer temporal abstraction: n-step (outer) + GAE (inner)
   enable_nstep: true
@@ -369,19 +372,14 @@ replay:
 
   # Age-Based Freshness Weighting
   # Decay formula: effective_priority = intrinsic_priority × exp(-age / age_decay)
-  # Larger age_decay for NQ Search (slower decay, longer-term memory)
-  age_decay: 2000.0  # Increased from FrozenLake's 500.0 for complex reasoning tasks
+  # Step-level buffer with 1M capacity needs larger age_decay
+  age_decay: 2000.0  # For complex reasoning tasks with large buffer
 
-  # Advantage-Based Priority Update
-  # Enable two-stage priority: reward (initial) → advantage (after training)
-  use_advantage_priority: true
-
-  # Initial Priority Function (at push time)
-  priority:
-    function: reward  # Use |reward| or |nstep_returns| as initial priority
-    alpha: 0.6  # Priority exponent (0.0=uniform, 1.0=full prioritization)
-    use_importance_weights: true  # Apply importance sampling weights
-    importance_beta: 0.4  # IS weight exponent (β ∈ [0.4, 1.0])
+  # Priority Function Configuration (flat structure)
+  priority_function: "reward"
+  priority_exponent: 0.6
+  importance_sampling_correction: true
+  importance_beta: 0.4
 
   # =========================================================================
   # OFF-POLICY FILTER CONFIGURATION (New Feature)
