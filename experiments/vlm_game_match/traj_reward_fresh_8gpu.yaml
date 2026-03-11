@@ -1,0 +1,278 @@
+# ==============================================================================
+# VLM GAMEMATCH OFF-POLICY - Trajectory Level + Reward-Fresh
+# ==============================================================================
+# Purpose: VLM with our Reward-Fresh priority extension
+# Hardware: 8x H100
+#   - GPU 0-3: actor_train + reference (DeepSpeed ZeRO-2)
+#   - GPU 4-7: actor_infer (vLLM)
+# Key Features:
+#   - VLTrajEnvManager for multimodal (image + text) processing
+#   - Reward-Fresh priority: (|reward| + e) x exp(-age/age_decay)
+#   - Importance sampling correction
+# ==============================================================================
+defaults:
+  - ../../ROLL/examples/config/traj_envs@_here_
+  - ../../ROLL/examples/config/deepspeed_zero@_here_
+  - ../../ROLL/examples/config/deepspeed_zero2@_here_
+  - ../../ROLL/examples/config/deepspeed_zero2_cpuoffload@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3_cpuoffload@_here_
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+exp_name: "vlm_game_match_traj_reward_fresh_8gpu"
+seed: 42
+timestamp: ${oc.env:TRAINING_TIMESTAMP,${now:%Y%m%d_%H%M%S}}
+base_output_dir: /mnt/project_modelware_roce/zhaojian/liangsirui/weiyu/projects/local_roll_dev/roll_dev/experiments/vlm_game_match/output
+logging_dir: ${base_output_dir}/${timestamp}/logs
+output_dir: ${base_output_dir}/${timestamp}
+render_save_dir: ${base_output_dir}/${timestamp}/render
+system_envs:
+  USE_MODELSCOPE: '1'
+
+track_with: wandb
+tracker_kwargs:
+  project: roll-vlm-game-match
+  name: ${timestamp}_${exp_name}
+  notes: "VLM Off-Policy: Trajectory level, Reward-Fresh (reward x age_decay), 8xH100"
+  tags: [agentic, roll, game_match, vlm, replay, reward_fresh, trajectory, 8xH100]
+  mode: offline
+  dir: ${base_output_dir}/${timestamp}/wandb
+
+checkpoint_config:
+  type: file_system
+  output_dir: ${base_output_dir}/${timestamp}/models/${exp_name}
+
+# =============================================================================
+# TRAINING CONFIGURATION
+# =============================================================================
+
+num_gpus_per_node: 8
+
+max_steps: 400
+save_steps: 10000
+logging_steps: 1
+eval_steps: 10
+resume_from_checkpoint: false
+
+train_from_replay_only: false
+batch_adjust_mode: auto
+async_generation_ratio: 1
+
+rollout_batch_size: 256
+val_batch_size: 256
+sequence_length: 8192
+
+advantage_clip: 20
+ppo_epochs: 1
+adv_estimator: "reinforce"
+init_kl_coef: 0.1
+use_kl_loss: true
+kl_loss_coef: 0.05
+whiten_advantages: true
+entropy_loss_coef: 0.01
+max_grad_norm: 1.0
+
+# =============================================================================
+# MODEL CONFIGURATION - VLM
+# =============================================================================
+
+pretrain: /mnt/project_modelware_roce/zhaojian/models/pretrain/Qwen2.5-VL-3B-Instruct
+reward_pretrain: ${pretrain}
+
+actor_train:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: false
+    dtype: bf16
+    model_type: ~
+  training_args:
+    learning_rate: 1.0e-6
+    weight_decay: 0
+    per_device_train_batch_size: 1
+    gradient_accumulation_steps: 32
+    warmup_steps: 10
+    lr_scheduler_type: cosine
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: deepspeed_train
+    strategy_config: ${deepspeed_zero2}
+  device_mapping: list(range(0,4))
+  infer_batch_size: 1
+  # Dynamic batching: group similar-length sequences to reduce padding
+  use_dynamic_batching_in_train: true
+  max_tokens_per_microbatch_in_train: 32768
+  sequence_length_round_in_train: 4
+  use_dynamic_batching_in_infer: true
+  max_tokens_per_microbatch_in_infer: 32768
+  sequence_length_round_in_infer: 4
+
+actor_infer:
+  model_args:
+    disable_gradient_checkpointing: true
+    dtype: bf16
+  generating_args:
+    max_new_tokens: 256
+    top_p: 0.99
+    top_k: 100
+    num_beams: 1
+    temperature: 0.99
+    num_return_sequences: 1
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: vllm
+    strategy_config:
+      gpu_memory_utilization: 0.92
+      block_size: 16
+      load_format: auto
+      limit_mm_per_prompt:
+        image: ${max_actions_per_traj}
+  device_mapping: list(range(4,8))
+
+reference:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: true
+    dtype: bf16
+    model_type: ~
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: hf_infer
+    strategy_config: ~
+  device_mapping: list(range(0,4))
+  infer_batch_size: 1
+  # Dynamic batching for reference inference
+  use_dynamic_batching_in_infer: true
+  max_tokens_per_microbatch_in_infer: 32768
+  sequence_length_round_in_infer: 4
+
+# =============================================================================
+# ENVIRONMENT CONFIGURATION - VLM GameMatch (Shisen-Sho)
+# =============================================================================
+
+action_pattern: <answer>(.*?)</answer>
+think_action_pattern: <think>(.*?)</think>\s*<answer>(.*?)</answer>
+user_prompt_no_think_format: "<answer> (row1, col1) (row2, col2) </answer>"
+user_prompt_think_format: "<think> [Your thoughts] </think> <answer> (row1, col1) (row2, col2) </answer>"
+
+max_tokens_per_step: 256
+max_actions_per_traj: 10
+
+reward_normalization:
+  grouping: traj_group_id
+  method: mean_std
+
+train_env_manager:
+  format_penalty: 0.0
+  max_env_num_per_worker: 32
+  num_env_groups: 128
+  group_size: 4
+  tags: [GameMatch]
+  num_groups_partition: [128]
+  max_traj_per_env: 2
+
+val_env_manager:
+  max_env_num_per_worker: 64
+  num_env_groups: 512
+  group_size: 1
+  tags: [GameMatch]
+  num_groups_partition: [512]
+
+custom_envs:
+  GameMatch:
+    env_type: game_match
+    max_tokens_per_step: ${max_tokens_per_step}
+    user_prompt_format: ${user_prompt_no_think_format}
+
+    # VLM-specific: Use VLTrajEnvManager
+    env_manager_cls: roll.pipeline.agentic.env_manager.vl_traj_env_manager.VLTrajEnvManager
+
+    # VLM-specific templates
+    agent_system_template: |
+      You are playing Shisen-Sho, a tile matching puzzle game, by viewing images.
+      The image shows a 6x6 grid with colored shape tiles (circles, squares, triangles).
+      Each tile type (color + shape combination) appears exactly 4 times.
+      Match two identical tiles that can be connected by a path with at most 2 turns.
+      The path uses only horizontal and vertical segments, cannot pass through other tiles,
+      but can go around the board edges.
+      When matched, both tiles are removed. Clear all tiles to win.
+      Specify tile positions using 0-indexed (row, column) coordinates.
+      Output: <answer>(row1, col1) (row2, col2)</answer>
+
+    # VLTrajEnvManager uses different template variables
+    pre_step_template: "Turn {turn_idx}:\nObserve the current board:"
+    next_step_template: |
+      You have {actions_left} actions left.
+      Analyze the board image and identify matching tile pairs.
+      Respond within {max_response_length} tokens.
+    reward_template: "Previous action reward: {reward}\n"
+
+    use_thread_lock: true
+
+    env_config:
+      env_instruction: |
+        You are playing Shisen-Sho, a tile matching puzzle.
+        Match two identical tiles connected by a path with at most 2 turns.
+        The path cannot pass through other tiles but can go around the board edges.
+        When matched, tiles are removed. Clear all tiles to win.
+        Use 0-indexed (row, col) coordinates.
+        Format: <answer>(row1, col1) (row2, col2)</answer>
+      action_pattern: ${action_pattern}
+      max_steps: ${max_actions_per_traj}
+      grid_rows: 6
+      grid_cols: 6
+      num_colors: 3
+      num_shapes: 3
+      render_mode: "rgb_array"
+      image_resolution: 256
+
+# =============================================================================
+# TRAJECTORY LOGGING
+# =============================================================================
+
+trajectory_log:
+  enabled: true
+  save_ratio: 0.1
+  max_samples_per_step: 20
+  filename: trajectory_samples.jsonl
+
+# =============================================================================
+# OFF-POLICY MONITORING
+# =============================================================================
+
+offpolicy_monitor:
+  enabled: true
+  save_behavior_log_probs: true
+  monitor_fresh_batch: true
+  monitor_replay_batch: true
+  monitor_interval: 1
+
+# =============================================================================
+# REPLAY BUFFER - Reward-Fresh Configuration
+# =============================================================================
+
+replay:
+  enabled: true
+  capacity: 50000
+  min_size: ${rollout_batch_size}
+  train_steps_per_env_step: 2
+  use_rollout_batch_size: true
+  sampling_mode: "trajectory"
+  storage_mode: tokens_only
+  lazy_tokenization: false
+  eviction_strategy: "fifo"
+
+  # Reward-Fresh: priority = (|reward| + e) x exp(-age/age_decay)
+  priority_function: "reward_fresh"
+  priority_exponent: 0.6
+  age_decay: 1000.0
+
+  # Importance Sampling Correction
+  importance_sampling_correction: true
+  importance_beta: 0.4

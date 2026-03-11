@@ -1,7 +1,25 @@
 nul
-nul
 output/
 *.log
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# wandb
+wandb/
+**/wandb/
+**/offline-run-*/
+
+# data and models (too large for git)
+data/
+datasets/
+
+# newest_roll is a separate clone for comparison
+newest_roll/
+
+# experiment outputs
+**/output/
+**/outputs/
+**/render/
+**/models/
+**/logs/

@@ -1,0 +1,263 @@
+# ==============================================================================
+# FROZENLAKE OFF-POLICY - Trajectory Level + Reward-Fresh + Config A + Age1500
+# ==============================================================================
+# Purpose: Test reward_fresh with age_decay=1500 (even more conservative)
+# Hardware: 2x A100 40GB
+#
+# Key Settings:
+#   - Config A (verified): advantage_clip=0.2, use_kl_loss=false
+#   - age_decay=1500: half-life at 1040 steps, 77% weight at step 400
+#
+# Comparison:
+#   - age_decay=500:  45% weight at step 400 (too aggressive?)
+#   - age_decay=1000: 67% weight at step 400
+#   - age_decay=1500: 77% weight at step 400 (this experiment)
+#   - age_decay=false: 100% weight (current best 29.7%)
+#
+# Expected: Should be very close to 29.7% if age decay is the problem
+# ==============================================================================
+defaults:
+  - ../../ROLL/examples/config/traj_envs@_here_
+  - ../../ROLL/examples/config/deepspeed_zero@_here_
+  - ../../ROLL/examples/config/deepspeed_zero2@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3_cpuoffload@_here_
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+exp_name: "traj_reward_fresh_configA_age1500"
+seed: 42
+timestamp: ${oc.env:TRAINING_TIMESTAMP,${now:%Y%m%d_%H%M%S}}
+base_output_dir: /mnt/nasdata/weiyu/roll_dev/experiments/frozen_lake_2a100_replaybuffer/output
+logging_dir: ${base_output_dir}/${timestamp}/logs
+output_dir: ${base_output_dir}/${timestamp}
+render_save_dir: ${base_output_dir}/${timestamp}/render
+system_envs:
+  USE_MODELSCOPE: '1'
+
+track_with: wandb
+tracker_kwargs:
+  project: roll-frozen-lake-2a100
+  name: ${timestamp}_${exp_name}
+  notes: "Config A + Reward-Fresh + age_decay=1500: Testing even more conservative age decay"
+  tags: [agentic, roll, frozen_lake, replay, traj, reward_fresh, configA, age1500, 2a100]
+  mode: offline
+  dir: ${base_output_dir}/${timestamp}/wandb
+
+checkpoint_config:
+  type: file_system
+  output_dir: ${base_output_dir}/${timestamp}/models/${exp_name}
+
+# =============================================================================
+# TRAINING CONFIGURATION - Config A (Verified Working)
+# =============================================================================
+# These parameters are from 01/22 experiments that achieved 25-30% val/score
+# DO NOT CHANGE these core parameters without verification!
+
+num_gpus_per_node: 2
+
+max_steps: 400                  # Same as 01/22 verified experiments
+save_steps: 10000
+logging_steps: 1
+eval_steps: 10
+resume_from_checkpoint: false
+
+train_from_replay_only: false
+batch_adjust_mode: auto
+async_generation_ratio: 1
+
+rollout_batch_size: 128
+val_batch_size: 128
+sequence_length: 2048
+
+# ===================== CONFIG A CORE PARAMETERS =====================
+advantage_clip: 0.2             # CRITICAL: Must be 0.2 (not 20!)
+ppo_epochs: 1
+adv_estimator: "reinforce"
+init_kl_coef: 0.0               # CRITICAL: Must be 0.0 (not 0.1!)
+use_kl_loss: false              # CRITICAL: Must be false (not true!)
+kl_loss_coef: 0                 # CRITICAL: Must be 0
+whiten_advantages: true
+entropy_loss_coef: 0            # CRITICAL: Must be 0 (not 0.01!)
+max_grad_norm: 1.0
+# ====================================================================
+
+# =============================================================================
+# MODEL CONFIGURATION
+# =============================================================================
+
+pretrain: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+reward_pretrain: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+
+actor_train:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: false
+    dtype: bf16
+    model_type: ~
+  training_args:
+    learning_rate: 1.0e-6
+    weight_decay: 0
+    per_device_train_batch_size: 4      # Config A uses 4x32 (verified)
+    gradient_accumulation_steps: 32     # Effective batch = 128
+    warmup_steps: 10
+    lr_scheduler_type: cosine
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: deepspeed_train
+    strategy_config: ${deepspeed_zero2}
+  device_mapping: list(range(0,1))
+  infer_batch_size: 4
+
+actor_infer:
+  model_args:
+    disable_gradient_checkpointing: true
+    dtype: bf16
+  generating_args:
+    max_new_tokens: 128
+    top_p: 0.99
+    top_k: 100
+    num_beams: 1
+    temperature: 0.99
+    num_return_sequences: 1
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: vllm
+    strategy_config:
+      gpu_memory_utilization: 0.85
+      block_size: 16
+      load_format: auto
+  device_mapping: list(range(1,2))
+
+reference:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: true
+    dtype: bf16
+    model_type: ~
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: hf_infer
+    strategy_config: ~
+  device_mapping: list(range(0,1))
+  infer_batch_size: 4
+
+# =============================================================================
+# ENVIRONMENT CONFIGURATION - FrozenLake (Trajectory Level)
+# =============================================================================
+
+action_pattern: <answer>(.*?)</answer>
+think_action_pattern: <think>(.*?)</think>\s*<answer>(.*?)</answer>
+user_prompt_no_think_format: <answer> [your answer] </answer>
+user_prompt_think_format: <think> [Your thoughts] </think> <answer> [your answer] </answer>
+
+max_tokens_per_step: 128
+max_actions_per_traj: 10
+
+reward_normalization:
+  grouping: traj_group_id
+  method: mean_std
+
+train_env_manager:
+  format_penalty: -0.15
+  max_env_num_per_worker: 16
+  num_env_groups: 64
+  group_size: 2
+  tags: [FrozenLake]
+  num_groups_partition: [64]
+
+val_env_manager:
+  max_env_num_per_worker: 32
+  num_env_groups: 128
+  group_size: 1
+  tags: [FrozenLake]
+  num_groups_partition: [128]
+
+custom_envs:
+  FrozenLake:
+    env_type: frozen_lake
+    max_tokens_per_step: ${max_tokens_per_step}
+    user_prompt_format: ${user_prompt_no_think_format}
+    agent_system_template: "You are an agent solving the FrozenLake puzzle. Output must be wrapped as <answer>Action</answer>."
+    agent_template: |
+      Current turn: {turn_idx}
+      Grid state:
+      {state}
+      Actions left: {actions_left}
+      Respond with one action token only, within {max_response_length} tokens.
+    reward_template: "Feedback: Your previous action received reward {reward}. Revise your plan if needed."
+    env_manager_cls: roll.pipeline.agentic.env_manager.traj_env_manager.TrajEnvManager
+    use_thread_lock: true
+    env_config:
+      env_instruction: "You are solving the FrozenLake puzzle. Forbid the whole and go to the target. You may move to the unintended direction due to the slippery ice. The answer must be one of action in a turn, format is <answer>Right</answer>"
+      action_pattern: ${action_pattern}
+      max_steps: ${max_actions_per_traj}
+      is_slippery: false
+
+# =============================================================================
+# OFF-POLICY MONITORING
+# =============================================================================
+
+offpolicy_monitor:
+  enabled: true
+  save_behavior_log_probs: true
+  monitor_fresh_batch: true
+  monitor_replay_batch: true
+  monitor_interval: 1
+
+# =============================================================================
+# TRAJECTORY LOGGING (for debugging and analysis)
+# =============================================================================
+
+trajectory_log:
+  enabled: true
+  save_ratio: 0.1               # Save 10% of trajectories
+  max_samples_per_step: 20      # Maximum samples per training step
+  filename: trajectory_samples.jsonl
+
+# =============================================================================
+# REPLAY BUFFER - Reward-Fresh with age_decay=1500
+# =============================================================================
+# Formula: priority = (|reward| + epsilon) * exp(-age / age_decay)
+#
+# Age decay with age_decay=1500:
+#   - Age 0:    weight = 1.0   (100%)
+#   - Age 400:  weight = 0.77  (77%)  <- end of training
+#   - Age 1040: weight = 0.5   (50% - half-life)
+#   - Age 1500: weight = 0.37  (37%)
+#
+# Comparison at step 400:
+#   - age_decay=500:  45% weight
+#   - age_decay=1000: 67% weight
+#   - age_decay=1500: 77% weight (this experiment)
+#   - age_decay=false: 100% weight (best)
+# =============================================================================
+
+replay:
+  enabled: true
+  capacity: 50000
+  min_size: ${rollout_batch_size}
+  train_steps_per_env_step: 2
+  use_rollout_batch_size: true
+  sampling_mode: "trajectory"
+  storage_mode: tokens_only
+  lazy_tokenization: false
+  eviction_strategy: "fifo"
+
+  # Reward-Fresh: our custom priority function
+  priority_function: "reward_fresh"
+  priority_exponent: 0.6
+
+  # Age decay parameter - even more conservative
+  enable_age_decay: true
+  age_decay: 1500.0
+
+  # Importance Sampling Correction
+  importance_sampling_correction: false
+  importance_beta: 0.4

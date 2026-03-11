@@ -1,0 +1,821 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    python_version: 3.10.19
+    cli_version: 0.23.1
+    framework: huggingface
+    huggingface_version: 4.51.2
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1769717164
+    t:
+      1:
+      - 1
+      - 11
+      - 30
+      - 41
+      - 49
+      - 50
+      - 51
+      - 71
+      - 84
+      - 98
+      - 105
+      2:
+      - 1
+      - 11
+      - 30
+      - 41
+      - 49
+      - 50
+      - 51
+      - 71
+      - 84
+      - 98
+      - 105
+      3:
+      - 4
+      - 13
+      - 15
+      - 42
+      - 61
+      4: 3.10.19
+      5: 0.23.1
+      6: 4.51.2
+      13: linux-x86_64
+    e:
+      e836pa4vz6so5hhbl2cyhiaeb0rf7eii:
+        os: Linux-5.15.0-139-generic-x86_64-with-glibc2.31
+        python: CPython 3.10.19
+        started_at: '2026-01-29T20:06:03.824867Z'
+        args:
+        - --config_path
+        - ../../experiments/frozen_lake_2a100_replaybuffer
+        - --config_name
+        - traj_reward_fresh_configA
+        program: /mnt/nasdata/weiyu/roll_dev/ROLL/examples/start_agentic_pipeline.py
+        code_path: examples/start_agentic_pipeline.py
+        code_path_local: examples/start_agentic_pipeline.py
+        git:
+          remote_url: https://github.com/histmeisah/ROLL.git
+        root: /mnt/nasdata/weiyu/roll_dev/experiments/frozen_lake_2a100_replaybuffer/output/20260130_040529/wandb
+        host: taizun172
+        executable: /mnt/nasdata/weiyu/miniconda3/envs/roll/bin/python
+        cpu_count: 128
+        cpu_count_logical: 256
+        gpu_type: NVIDIA A100-PCIE-40GB
+        gpu_count: 2
+        disk:
+          /:
+            total: '4030803197952'
+            used: '1494276947968'
+        memory:
+          total: '540812783616'
+        gpu_nvidia:
+        - name: NVIDIA A100-PCIE-40GB
+          memory_total: '42949672960'
+          cuda_cores: 6912
+          architecture: Ampere
+          uuid: GPU-61ad9da1-4ece-448e-aeaf-ad5b95c71439
+        - name: NVIDIA A100-PCIE-40GB
+          memory_total: '42949672960'
+          cuda_cores: 6912
+          architecture: Ampere
+          uuid: GPU-5838f9f3-960b-7828-904f-1526db9e92f0
+        cuda_version: '12.2'
+        writer_id: e836pa4vz6so5hhbl2cyhiaeb0rf7eii
+exp_name:
+  desc: null
+  value: traj_reward_fresh_configA
+seed:
+  desc: null
+  value: 42
+rpc_timeout:
+  desc: null
+  value: 3600
+output_dir:
+  desc: null
+  value: /mnt/nasdata/weiyu/roll_dev/experiments/frozen_lake_2a100_replaybuffer/output/20260130_040529
+logging_dir:
+  desc: null
+  value: /mnt/nasdata/weiyu/roll_dev/experiments/frozen_lake_2a100_replaybuffer/output/20260130_040529/logs/traj_reward_fresh_configA
+track_with:
+  desc: null
+  value: wandb
+tracker_kwargs:
+  desc: null
+  value:
+    project: roll-frozen-lake-2a100
+    name: 20260130_040529_traj_reward_fresh_configA
+    notes: 'Config A + Reward-Fresh: Testing reward_fresh with verified parameters
+      (adv_clip=0.2, no KL loss)'
+    tags:
+    - agentic
+    - roll
+    - frozen_lake
+    - replay
+    - traj
+    - reward_fresh
+    - configA
+    - 2a100
+    mode: offline
+    dir: /mnt/nasdata/weiyu/roll_dev/experiments/frozen_lake_2a100_replaybuffer/output/20260130_040529/wandb
+max_steps:
+  desc: null
+  value: 400
+save_steps:
+  desc: null
+  value: 10000
+logging_steps:
+  desc: null
+  value: 1
+eval_steps:
+  desc: null
+  value: 10
+rollout_batch_size:
+  desc: null
+  value: 128
+async_generation_ratio:
+  desc: null
+  value: 1
+val_batch_size:
+  desc: null
+  value: 128
+local_rank:
+  desc: null
+  value: -1
+resume_from_checkpoint:
+  desc: null
+  value: false
+checkpoint_config:
+  desc: null
+  value:
+    type: file_system
+    output_dir: /mnt/nasdata/weiyu/roll_dev/experiments/frozen_lake_2a100_replaybuffer/output/20260130_040529/models/traj_reward_fresh_configA/20260130-040538
+prompt_length:
+  desc: null
+  value: 1024
+response_length:
+  desc: null
+  value: null
+sequence_length:
+  desc: null
+  value: 2048
+val_prompt_length:
+  desc: null
+  value: 1024
+val_sequence_length:
+  desc: null
+  value: 2048
+alive_check_interval:
+  desc: null
+  value: 10
+profiler_timeline:
+  desc: null
+  value: false
+profiler_memory:
+  desc: null
+  value: false
+profiler_output_dir:
+  desc: null
+  value: ./output/profiler/traj_reward_fresh_configA/20260130-040538
+system_envs:
+  desc: null
+  value:
+    USE_MODELSCOPE: '1'
+num_nodes:
+  desc: null
+  value: 1
+num_gpus_per_node:
+  desc: null
+  value: 2
+model_download_type:
+  desc: null
+  value: null
+custom_envs:
+  desc: null
+  value: '{''FrozenLake'': {''env_type'': ''frozen_lake'', ''max_tokens_per_step'':
+    128, ''user_prompt_format'': ''<answer> [your answer] </answer>'', ''agent_system_template'':
+    ''You are an agent solving the FrozenLake puzzle. Output must be wrapped as <answer>Action</answer>.'',
+    ''agent_template'': ''Current turn: {turn_idx}\nGrid state:\n{state}\nActions
+    left: {actions_left}\nRespond with one action token only, within {max_response_length}
+    tokens.\n'', ''reward_template'': ''Feedback: Your previous action received reward
+    {reward}. Revise your plan if needed.'', ''env_manager_cls'': ''roll.pipeline.agentic.env_manager.traj_env_manager.TrajEnvManager'',
+    ''use_thread_lock'': True, ''env_config'': {''env_instruction'': ''You are solving
+    the FrozenLake puzzle. Forbid the whole and go to the target. You may move to
+    the unintended direction due to the slippery ice. The answer must be one of action
+    in a turn, format is <answer>Right</answer>'', ''action_pattern'': ''<answer>(.*?)</answer>'',
+    ''max_steps'': 10, ''is_slippery'': False, ''group_id'': 127, ''group_size'':
+    128}}}'
+train_env_manager:
+  desc: null
+  value:
+    name: train_env
+    worker_cls: roll.pipeline.agentic.environment_worker.EnvironmentWorker
+    model_args:
+      additional_target: null
+      lora_alpha: 16
+      lora_dropout: 0.0
+      lora_rank: 8
+      lora_target: null
+      model_name_or_path: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+      adapter_name_or_path: null
+      attn_implementation: null
+      moe_aux_loss_coef: null
+      disable_gradient_checkpointing: false
+      device_map: balanced
+      dtype: bf16
+      model_type: null
+      num_labels: 1
+      model_config_kwargs: {}
+      freeze_module_prefix: null
+      ulysses_size: 1
+    training_args:
+      output_dir: ''
+      max_steps: -1
+      num_train_epochs: 1.0
+      learning_rate: 5.0e-05
+      lr_scheduler_type: linear
+      weight_decay: 0.0
+      adam_beta1: 0.9
+      adam_beta2: 0.999
+      per_device_train_batch_size: 8
+      gradient_accumulation_steps: 1
+      seed: 42
+      data_seed: null
+      dataloader_num_workers: 0
+      fp16: false
+      bf16: false
+      tf32: null
+      warmup_ratio: 0.03
+      warmup_steps: 0
+    data_args: null
+    generating_args:
+      do_sample: true
+      temperature: 0.99
+      top_p: 0.99
+      top_k: 100
+      num_beams: 1
+      max_length: 8192
+      max_new_tokens: 128
+      repetition_penalty: 1.0
+      length_penalty: 1.0
+      num_return_sequences: 1
+    strategy_args: null
+    world_size: 8
+    device_mapping: null
+    num_gpus_per_worker: 1
+    model_update_frequency: 1
+    infer_batch_size: 16
+    backend_timeout: 30
+    system_envs: {}
+    llm_proxy:
+      proxy_type: policy
+      proxy_config: {}
+    num_env_groups: 64
+    group_size: 2
+    tags:
+    - FrozenLake
+    num_groups_partition:
+    - 64
+    max_traj_per_env: 1
+    format_penalty: -0.15
+    max_env_num_per_worker: 16
+val_env_manager:
+  desc: null
+  value:
+    name: val_env
+    worker_cls: roll.pipeline.agentic.environment_worker.EnvironmentWorker
+    model_args:
+      additional_target: null
+      lora_alpha: 16
+      lora_dropout: 0.0
+      lora_rank: 8
+      lora_target: null
+      model_name_or_path: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+      adapter_name_or_path: null
+      attn_implementation: null
+      moe_aux_loss_coef: null
+      disable_gradient_checkpointing: false
+      device_map: balanced
+      dtype: bf16
+      model_type: null
+      num_labels: 1
+      model_config_kwargs: {}
+      freeze_module_prefix: null
+      ulysses_size: 1
+    training_args:
+      output_dir: ''
+      max_steps: -1
+      num_train_epochs: 1.0
+      learning_rate: 5.0e-05
+      lr_scheduler_type: linear
+      weight_decay: 0.0
+      adam_beta1: 0.9
+      adam_beta2: 0.999
+      per_device_train_batch_size: 8
+      gradient_accumulation_steps: 1
+      seed: 42
+      data_seed: null
+      dataloader_num_workers: 0
+      fp16: false
+      bf16: false
+      tf32: null
+      warmup_ratio: 0.03
+      warmup_steps: 0
+    data_args: null
+    generating_args:
+      do_sample: true
+      temperature: 0.99
+      top_p: 0.99
+      top_k: 100
+      num_beams: 1
+      max_length: 8192
+      max_new_tokens: 128
+      repetition_penalty: 1.0
+      length_penalty: 1.0
+      num_return_sequences: 1
+    strategy_args: null
+    world_size: 4
+    device_mapping: null
+    num_gpus_per_worker: 1
+    model_update_frequency: 1
+    infer_batch_size: 16
+    backend_timeout: 30
+    system_envs: {}
+    llm_proxy:
+      proxy_type: policy
+      proxy_config: {}
+    num_env_groups: 128
+    group_size: 1
+    tags:
+    - FrozenLake
+    num_groups_partition:
+    - 128
+    max_traj_per_env: 1
+    format_penalty: 0
+    max_env_num_per_worker: 32
+render_save_dir:
+  desc: null
+  value: /mnt/nasdata/weiyu/roll_dev/experiments/frozen_lake_2a100_replaybuffer/output/20260130_040529/render/traj_reward_fresh_configA/20260130-040538
+trajectory_log:
+  desc: null
+  value:
+    enabled: true
+    save_ratio: 0.1
+    max_samples_per_step: 20
+    filename: trajectory_samples.jsonl
+reward_normalization:
+  desc: null
+  value:
+    grouping: traj_group_id
+    method: mean_std
+offpolicy_monitor:
+  desc: null
+  value:
+    enabled: true
+    save_behavior_log_probs: true
+    monitor_fresh_batch: true
+    monitor_replay_batch: true
+    monitor_interval: 1
+replay:
+  desc: null
+  value:
+    enabled: true
+    capacity: 50000
+    min_size: 128
+    train_steps_per_env_step: 2
+    minibatch_size: 128
+    use_rollout_batch_size: true
+    storage_mode: tokens_only
+    source_manager_type: auto
+    lazy_tokenization: false
+    replay_ratio: 0.5
+    sampling_mode: trajectory
+    steps_per_episode: 1
+    sample_method: uniform
+    candidates_per_group: 1
+    group_sampling: uniform
+    min_groups: 0
+    train_from_replay_only: false
+    enable_nstep: false
+    n_step: 5
+    nstep_gamma: 0.99
+    use_nstep_in_advantage: false
+    use_bootstrap: false
+    enable_gae: false
+    gae_lambda: 0.95
+    gae_horizon: 20
+    priority_function: reward_fresh
+    priority_exponent: 0.6
+    importance_sampling_correction: false
+    importance_beta: 0.4
+    enable_age_decay: false
+    age_decay: 500.0
+    eviction_strategy: fifo
+    enable_offpolicy_filter: false
+    ratio_clip_max: 3.0
+    filter_mini_batch_size: 32
+    filter_max_attempts: 20
+    filter_oversample_ratio: 1.5
+    filter_min_acceptable_batch: null
+vtrace:
+  desc: null
+  value:
+    rho_bar: 1.0
+    c_bar: 1.0
+hierarchical:
+  desc: null
+  value:
+    enabled: false
+    step_level_estimator: gae
+    step_gamma: 0.99
+    step_lambda: 0.95
+    step_n_steps: 5
+    use_step_bootstrap: true
+    step_value_source: last_token
+    token_level_estimator: gae
+    token_gamma: 0.99
+    token_lambda: 0.95
+    reward_assignment: last_token
+    assignment_temperature: 1.0
+    use_original_rewards: false
+    mixing_alpha: 1.0
+    log_hierarchical_metrics: true
+    debug_mode: false
+pretrain:
+  desc: null
+  value: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+reward_pretrain:
+  desc: null
+  value: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+actor_train:
+  desc: null
+  value:
+    name: actor_train
+    worker_cls: roll.pipeline.base_worker.ActorWorker
+    model_args:
+      additional_target: null
+      lora_alpha: 16
+      lora_dropout: 0.0
+      lora_rank: 8
+      lora_target: null
+      model_name_or_path: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+      adapter_name_or_path: null
+      attn_implementation: flash_attention_2
+      moe_aux_loss_coef: null
+      disable_gradient_checkpointing: false
+      device_map: balanced
+      dtype: bf16
+      model_type: null
+      num_labels: 1
+      model_config_kwargs: {}
+      freeze_module_prefix: null
+      ulysses_size: 1
+    training_args:
+      output_dir: /mnt/nasdata/weiyu/roll_dev/experiments/frozen_lake_2a100_replaybuffer/output/20260130_040529
+      max_steps: -1
+      num_train_epochs: 1.0
+      learning_rate: 1.0e-06
+      lr_scheduler_type: cosine
+      weight_decay: 0
+      adam_beta1: 0.9
+      adam_beta2: 0.999
+      per_device_train_batch_size: 4
+      gradient_accumulation_steps: 32
+      seed: 42
+      data_seed: null
+      dataloader_num_workers: 0
+      fp16: false
+      bf16: true
+      tf32: null
+      warmup_ratio: 0.03
+      warmup_steps: 10
+    data_args:
+      template: qwen2_5
+      domain_interleave_probs: null
+      preprocessing_num_workers: null
+      file_name: null
+      eval_file_name: null
+      prompt: null
+      messages: null
+    generating_args: null
+    strategy_args:
+      strategy_name: deepspeed_train
+      strategy_config:
+        train_micro_batch_size_per_gpu: auto
+        bf16:
+          enabled: true
+        fp16:
+          enabled: false
+          loss_scale: 0
+          initial_scale_power: 16
+          loss_scale_window: 1000
+          hysteresis: 2
+          min_loss_scale: 1
+        zero_optimization:
+          stage: 2
+          allgather_partitions: true
+          allgather_bucket_size: 1000000000.0
+          overlap_comm: true
+          reduce_scatter: true
+          reduce_bucket_size: 500000000.0
+          contiguous_gradients: true
+    world_size: 1
+    device_mapping:
+    - 0
+    num_gpus_per_worker: 1
+    model_update_frequency: 1
+    infer_batch_size: 4
+    backend_timeout: 30
+    system_envs: {}
+actor_infer:
+  desc: null
+  value:
+    name: actor_infer
+    worker_cls: roll.pipeline.base_worker.ActorWorker
+    model_args:
+      additional_target: null
+      lora_alpha: 16
+      lora_dropout: 0.0
+      lora_rank: 8
+      lora_target: null
+      model_name_or_path: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+      adapter_name_or_path: null
+      attn_implementation: null
+      moe_aux_loss_coef: null
+      disable_gradient_checkpointing: true
+      device_map: balanced
+      dtype: bf16
+      model_type: null
+      num_labels: 1
+      model_config_kwargs: {}
+      freeze_module_prefix: null
+      ulysses_size: 1
+    training_args:
+      output_dir: /mnt/nasdata/weiyu/roll_dev/experiments/frozen_lake_2a100_replaybuffer/output/20260130_040529
+      max_steps: -1
+      num_train_epochs: 1.0
+      learning_rate: 5.0e-05
+      lr_scheduler_type: linear
+      weight_decay: 0.0
+      adam_beta1: 0.9
+      adam_beta2: 0.999
+      per_device_train_batch_size: 8
+      gradient_accumulation_steps: 1
+      seed: 42
+      data_seed: null
+      dataloader_num_workers: 0
+      fp16: false
+      bf16: true
+      tf32: null
+      warmup_ratio: 0.03
+      warmup_steps: 0
+    data_args:
+      template: qwen2_5
+      domain_interleave_probs: null
+      preprocessing_num_workers: null
+      file_name: null
+      eval_file_name: null
+      prompt: null
+      messages: null
+    generating_args:
+      do_sample: true
+      temperature: 0.99
+      top_p: 0.99
+      top_k: 100
+      num_beams: 1
+      max_length: 8192
+      max_new_tokens: 128
+      repetition_penalty: 1.0
+      length_penalty: 1.0
+      num_return_sequences: 1
+    strategy_args:
+      strategy_name: vllm
+      strategy_config:
+        gpu_memory_utilization: 0.85
+        block_size: 16
+        load_format: auto
+    world_size: 1
+    device_mapping:
+    - 1
+    num_gpus_per_worker: 1
+    model_update_frequency: 1
+    infer_batch_size: 16
+    backend_timeout: 30
+    system_envs: {}
+critic:
+  desc: null
+  value:
+    name: critic
+    worker_cls: roll.pipeline.base_worker.CriticWorker
+    model_args:
+      additional_target: null
+      lora_alpha: 16
+      lora_dropout: 0.0
+      lora_rank: 8
+      lora_target: null
+      model_name_or_path: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+      adapter_name_or_path: null
+      attn_implementation: null
+      moe_aux_loss_coef: null
+      disable_gradient_checkpointing: false
+      device_map: balanced
+      dtype: bf16
+      model_type: null
+      num_labels: 1
+      model_config_kwargs: {}
+      freeze_module_prefix: null
+      ulysses_size: 1
+    training_args:
+      output_dir: /mnt/nasdata/weiyu/roll_dev/experiments/frozen_lake_2a100_replaybuffer/output/20260130_040529
+      max_steps: -1
+      num_train_epochs: 1.0
+      learning_rate: 5.0e-05
+      lr_scheduler_type: linear
+      weight_decay: 0.0
+      adam_beta1: 0.9
+      adam_beta2: 0.999
+      per_device_train_batch_size: 8
+      gradient_accumulation_steps: 1
+      seed: 42
+      data_seed: null
+      dataloader_num_workers: 0
+      fp16: false
+      bf16: true
+      tf32: null
+      warmup_ratio: 0.03
+      warmup_steps: 0
+    data_args: null
+    generating_args: null
+    strategy_args: null
+    world_size: null
+    device_mapping: null
+    num_gpus_per_worker: 0
+    model_update_frequency: 1
+    infer_batch_size: 16
+    backend_timeout: 30
+    system_envs: {}
+reference:
+  desc: null
+  value:
+    name: reference
+    worker_cls: roll.pipeline.base_worker.ActorWorker
+    model_args:
+      additional_target: null
+      lora_alpha: 16
+      lora_dropout: 0.0
+      lora_rank: 8
+      lora_target: null
+      model_name_or_path: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+      adapter_name_or_path: null
+      attn_implementation: flash_attention_2
+      moe_aux_loss_coef: null
+      disable_gradient_checkpointing: true
+      device_map: balanced
+      dtype: bf16
+      model_type: null
+      num_labels: 1
+      model_config_kwargs: {}
+      freeze_module_prefix: null
+      ulysses_size: 1
+    training_args:
+      output_dir: ''
+      max_steps: -1
+      num_train_epochs: 1.0
+      learning_rate: 5.0e-05
+      lr_scheduler_type: linear
+      weight_decay: 0.0
+      adam_beta1: 0.9
+      adam_beta2: 0.999
+      per_device_train_batch_size: 8
+      gradient_accumulation_steps: 1
+      seed: 42
+      data_seed: null
+      dataloader_num_workers: 0
+      fp16: false
+      bf16: true
+      tf32: null
+      warmup_ratio: 0.03
+      warmup_steps: 0
+    data_args:
+      template: qwen2_5
+      domain_interleave_probs: null
+      preprocessing_num_workers: null
+      file_name: null
+      eval_file_name: null
+      prompt: null
+      messages: null
+    generating_args: null
+    strategy_args:
+      strategy_name: hf_infer
+      strategy_config: null
+    world_size: 1
+    device_mapping:
+    - 0
+    num_gpus_per_worker: 1
+    model_update_frequency: 1
+    infer_batch_size: 4
+    backend_timeout: 30
+    system_envs: {}
+batch_adjust_mode:
+  desc: null
+  value: auto
+episode_reward_weight:
+  desc: null
+  value: 1.0
+step_reward_weight:
+  desc: null
+  value: 1.0
+step_reward_gamma:
+  desc: null
+  value: 0.95
+ppo_epochs:
+  desc: null
+  value: 1
+max_grad_norm:
+  desc: null
+  value: 1.0
+l2:
+  desc: null
+  value: 0.0
+lambd:
+  desc: null
+  value: 0.95
+gamma:
+  desc: null
+  value: 1
+pg_clip:
+  desc: null
+  value: 0.2
+value_clip:
+  desc: null
+  value: null
+kl_penalty:
+  desc: null
+  value: kl
+target_kl:
+  desc: null
+  value: null
+init_kl_coef:
+  desc: null
+  value: 0.0
+kl_horizon:
+  desc: null
+  value: 10000
+use_reward_scaling:
+  desc: null
+  value: false
+add_len_reward:
+  desc: null
+  value: false
+reward_clip:
+  desc: null
+  value: null
+use_reward_norm:
+  desc: null
+  value: false
+whiten_rewards:
+  desc: null
+  value: false
+whiten_advantages:
+  desc: null
+  value: true
+advantage_clip:
+  desc: null
+  value: 0.2
+adv_estimator:
+  desc: null
+  value: reinforce
+reward_norm:
+  desc: null
+  value: null
+reward_shift:
+  desc: null
+  value: false
+reward_scale:
+  desc: null
+  value: false
+add_token_level_kl:
+  desc: null
+  value: false
+critic_warmup:
+  desc: null
+  value: 0
+use_kl_loss:
+  desc: null
+  value: false
+kl_loss_coef:
+  desc: null
+  value: 0
+entropy_loss_coef:
+  desc: null
+  value: 0
+loss_agg_mode:
+  desc: null
+  value: seq-mean-token-sum
+dual_clip_loss:
+  desc: null
+  value: false
