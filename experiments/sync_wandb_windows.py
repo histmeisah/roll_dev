@@ -13,25 +13,16 @@ from pathlib import Path
 # ========== 配置区 ==========
 # 要同步的offline run目录列表
 OFFLINE_PATHS = [
-    r"E:\code_project\python_code\local_roll_dev\roll_dev\experiments\frozen_lake_2a100_replaybuffer\wandb\offline-run-20260309_185304-botu44e7",
-        # r"E:\code_project\python_code\local_roll_dev\roll_dev\experiments\frozen_lake_2a100_replaybuffer\wandb\offline-run-20260303_131119-d255skvo",
-
-    # r"E:\code_project\python_code\local_roll_dev\roll_dev\experiments\math_hendrycks_8h100_replaybuffer\wandb\offline-run-20260301_113728-24gctjmi",
-
-    # r"E:\code_project\python_code\local_roll_dev\roll_dev\experiments\math_gsm8k_8h100_replaybuffer\wandb\offline-run-20260228_132745-yo8rc69h",
-    #     r"E:\code_project\python_code\local_roll_dev\roll_dev\experiments\math_gsm8k_8h100_replaybuffer\wandb\offline-run-20260228_142228-zl9obsyi",
-
-    # r"E:\code_project\python_code\local_roll_dev\roll_dev\experiments\math_gsm8k_8h100_replaybuffer\wandb\offline-run-20260228_142254-qohine32",
-
-
-
+    r"E:\code_project\python_code\local_roll_dev\roll_dev\experiments\grpo_aime\wandb\exp1_huj8ikin",
+    r"E:\code_project\python_code\local_roll_dev\roll_dev\experiments\grpo_aime\wandb\exp2_6iwiqxzx",
+    r"E:\code_project\python_code\local_roll_dev\roll_dev\experiments\grpo_aime\wandb\exp3_xuazinvp",
+    r"E:\code_project\python_code\local_roll_dev\roll_dev\experiments\grpo_aime\wandb\exp4_mmv8u93h",
 ]
 
 # WandB配置
 WANDB_API_KEY = "5d830c409e2aa7dff34c333a2f79798a877bfc7b"
-WANDB_PROJECT = ""  # 必须与训练时的项目名一致
+WANDB_PROJECT = "roll-grpo-replay-aime"  # 必须与训练时的项目名一致
 
-# WANDB_PROJECT = "roll-sokoban-2a100"  # 必须与训练时的项目名一致
 ENTITY = ""  # 留空使用个人账户
 # ============================
 
