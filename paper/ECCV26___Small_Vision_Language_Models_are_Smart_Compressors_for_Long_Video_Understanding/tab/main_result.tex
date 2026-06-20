@@ -1,0 +1,63 @@
+\begin{table*}[t]
+    \centering
+    \setlength{\tabcolsep}{8pt} 
+    \renewcommand{\arraystretch}{1.2} 
+    \caption{\textbf{Comparison with state-of-the-art MLLMs on long video benchmarks, highlighting Tempo's superior accuracy and extreme token efficiency.} \textbf{Bold} and \underline{underline} denote the best and second-best results among specialized long video MLLMs. ``-'' indicates unavailable results. * indicates the average tokens per frame are dynamically adjusted. For our model, we report the theoretical dynamic range (0.5--16) alongside the actual empirical average tokens per frame ({\setlength{\fboxsep}{1pt}\colorbox{gray!10}{\textbf{gray rows}}}), demonstrating that Tempo inherently operates substantially below the maximum budget limits in practice.}
+    \label{tab:main_table}
+    \resizebox{\linewidth}{!}{
+    \begin{tabular}{l c c ccccc}
+        \toprule
+        \multirow{2.5}{*}{\textbf{Model}} & \multirow{2.5}{*}{\textbf{Size}} & \textbf{Tokens} & \textbf{LongVideoBench} & \textbf{MLVU} & \multicolumn{2}{c}{\textbf{Video-MME (w/o sub.)}} & \textbf{LVBench} \\
+        \cmidrule(lr){6-7}
+        & & \textbf{per frame} & (473s) & (651s) & Overall (1010s) & Long (2386s) & (4101s) \\
+        \midrule
+        
+        \addlinespace[0.3ex] 
+        \multicolumn{8}{l}{\textit{Proprietary Models}} \\
+        \addlinespace[0.3ex] 
+        GPT-4o~\cite{hurst2024gpt}             &  - &  - & 66.7 & 64.6 & 71.9 & 65.3 & 30.8 \\
+        Gemini 1.5 Pro~\cite{team2024gemini}   &  - &  - & 64.0 & -    & 75.0 & 67.4 & 33.1 \\
+        \midrule
+        
+        \addlinespace[0.3ex]
+        \multicolumn{8}{l}{\textit{General Open-Source MLLMs}} \\
+        \addlinespace[0.3ex]
+        VideoChat2-HD~\cite{li2025videochat}    & 7B & 72   & -    & 47.9 & 45.3 & 39.8  & - \\
+        LLaVA-OneVision~\cite{li2024llava}      & 7B & 196  & 56.4 & 64.7 & 58.2 & -     & - \\
+        LLaVA-Video~\cite{zhang2024llava}       & 7B & 676  & 58.2 & 70.8 & 63.3 & -     & - \\
+        VideoLLaMA3*~\cite{zhang2025videollama} & 7B & $\le$ 91 & 59.8 & 73.0 & 66.2 & 54.9 & 45.3 \\
+        InternVL3.5~\cite{wang2025internvl3}    & 8B & 256  & 62.1 & 70.2 & 66.0 & -    & - \\
+        Molmo2~\cite{clark2026molmo2}           & 8B & 83   & 67.5 & -    & 69.9 & -    & 52.8 \\
+        Qwen2.5-VL~\cite{bai2025qwen3}          & 7B & 1924 & 56.0 & 70.2 & 65.1 & -    & 45.3 \\
+        Qwen3-VL*~\cite{bai2025qwen3}           & 2B & $\le$ 640 & -    & 68.3 & 61.9 & -    & 47.4 \\
+        Qwen3-VL*~\cite{bai2025qwen3}           & 8B & $\le$ 640 & -    & 78.1 & 71.4 & -    & 58.0 \\
+        \midrule
+        
+        \addlinespace[0.3ex]
+        \multicolumn{8}{l}{\textit{Specialized Long Video MLLMs}} \\
+        \addlinespace[0.3ex]
+        LLaMA-VID~\cite{li2024llama}       & 7B   & 2   & -    & 33.2 & 25.9  & -   & 23.9 (13B) \\
+        LongVA~\cite{zhang2024long}        & 7B   & 144 & -    & 56.3 & 52.6 & 46.2 & - \\
+        Kangaroo~\cite{liu2024kangaroo}    & 8B   & 256 & 54.8 & 61.0 & 56.0 & 46.7 & 39.4 \\
+        LongLLaVA~\cite{wang2024longllava} & A13B & 144 & 53.5 & -    & 53.8 & 46.4 & - \\
+        LongVILA~\cite{chen2024longvila}   & 7B   & 196 & 57.1 & -    & 60.1 & 47.0 & - \\
+        LongVU~\cite{shen2024longvu}       & 7B   & 64  & -    & 65.4 & 60.6 & 59.5 & - \\
+        Storm~\cite{jiang2025storm}        & 7B   & 64  & 60.5 & 72.9 & 63.4 & 53.4 & - \\
+        BIMBA~\cite{islam2025bimba}        & 7B   & 36 & 59.5 & 71.4 & 64.7 & -    & - \\
+        VideoChat-Flash~\cite{li2024videochat}  & 7B  & 16   & \underline{64.7} & 74.7 & 65.3 & 55.4 & 48.2 \\
+        % \rowcolor{gray!10} \textbf{Tempo* (4K Budget)} & \textbf{6B}& \textbf{0.5--16} & 64.5          & \textbf{75.6}    &  \textbf{67.8}      & \textbf{57.8}    & \textbf{52.7} \\
+        % \rowcolor{gray!10} \textbf{Tempo* (8K Budget)} & \textbf{6B}& \textbf{0.5--16} & \textbf{65.1} & \underline{75.2} & \underline{67.7}   & \underline{57.0} & \underline{52.3} \\
+        \midrule
+        \rowcolor{gray!10} \textbf{Tempo* (4K Budget)} & \textbf{6B} & \textbf{0.5--16} & 64.5 & \textbf{75.6} & \textbf{67.8} & \textbf{57.8} & \textbf{52.7} \\
+        
+        \rowcolor{gray!10} \multicolumn{3}{r}{\textit{\textcolor{darkgray}{$\hookrightarrow$ actual avg. toks/frame}}} & \textit{\textcolor{darkgray}{2.8}} & \textit{\textcolor{darkgray}{2.8}} & \textit{\textcolor{darkgray}{3.6}} & \textit{\textcolor{darkgray}{3.4}} & \textit{\textcolor{darkgray}{2.9}} \\
+
+        \midrule
+        \rowcolor{gray!10} \textbf{Tempo* (8K Budget)} & \textbf{6B} & \textbf{0.5--16} & \textbf{65.1} & \underline{75.2} & \underline{67.7} & \underline{57.0} & \underline{52.3} \\
+        
+        \rowcolor{gray!10} \multicolumn{3}{r}{\textit{\textcolor{darkgray}{$\hookrightarrow$ actual avg. toks/frame}}} & \textit{\textcolor{darkgray}{3.1}} & \textit{\textcolor{darkgray}{3.3}} & \textit{\textcolor{darkgray}{4.3}} & \textit{\textcolor{darkgray}{4.1}} & \textit{\textcolor{darkgray}{3.5}} \\
+        \bottomrule
+    
+    \end{tabular}
+    }
+\end{table*}

@@ -1,0 +1,39 @@
+\section{Prompt Design and Relevance Scoring Ablation}
+\label{supp:prompts_ablation}
+
+In this section, we describe the system prompts used during training and inference, and analyze their impact on the ATA routing mechanism.
+
+\subsection{System Prompt Definition}
+
+To guide the local SVLM to act as a query-conditioned visual compressor, we design two system prompts:
+
+\vspace{0.5em}
+\noindent\textbf{Standard Prompt ($\mathcal{P}_{std}$):}
+\begin{quote}
+\textit{``You are a query-conditioned visual compressor. Store in the provided memory tokens the minimal visual information needed to answer the Query. Ignore irrelevant details.''}
+\end{quote}
+
+\noindent\textbf{Explicit Routing Prompt ($\mathcal{P}_{route}$):}
+\begin{quote}
+\textit{``You are a query-conditioned visual compressor. Store in the provided memory tokens the minimal visual information needed to answer the Query. Ignore irrelevant details. Now, before compressing, answer exactly `Yes' or `No': is this segment relevant to the Query?''}
+\end{quote}
+
+\subsection{Zero-Shot Relevance Prior}
+
+An interesting property of the Tempo SVLM is its \textbf{zero-shot relevance routing capability}. During training, the SVLM is optimized exclusively with the Standard Prompt ($\mathcal{P}_{std}$) to focus on cross-modal compression, and it is \emph{never} explicitly trained to produce binary relevance labels.
+%
+At inference time, we instead apply the Explicit Routing Prompt ($\mathcal{P}_{route}$). The SVLM is able to follow this instruction in a zero-shot manner, accurately producing a relevance decision before generating the compressed memory tokens (Sec.~\ref{sec:exp:ablation}B). This behavior suggests that the SVLM possesses the semantic alignment between the query and the visual segment, which can be readily elicited as a routing prior.
+
+\subsection{Ablation Analysis on Relevance Source (Ablation-D)}
+
+To further validate the design, we conduct an ablation study comparing different relevance scoring sources and prompt formulations.
+
+\begin{itemize}
+
+\item \textbf{Impact of Explicit Routing:}
+Across both the Base Model Prior and the Tempo SVLM Prior, replacing the standard prompt with the explicit routing prompt ($\mathcal{P}_{route}$) generally improves performance. Encouraging the model to make an explicit relevance decision before context aggregation acts as a useful constraint that helps filter irrelevant segments.
+
+\item \textbf{Observation on Base Model Prior:}
+Interestingly, the \emph{Base Model Prior (Standard Prompt)} uses the default system prompt of the Qwen-VL series (\ie \emph{``You are a helpful assistant.''}). Despite the absence of an explicit routing instruction, the model still achieves strong performance. This observation suggests that Qwen-VL models may implicitly assess the relevance between visual inputs and user queries before generating answers.
+
+\end{itemize}

@@ -1,0 +1,196 @@
+Freshness-Aware Prioritized Experience Replay for LLM/VLM Reinforcement Learning
+Download PDF
+Weiyu Ma, Yongcheng Zeng, Yan Song, Xinyu Cui, Jian Zhao, Xuhui Liu, Mohamed Elhoseiny
+24 Feb 2026 (modified: 15 Mar 2026)
+ECCV 2026 Conference Submission
+Conference, Senior Area Chairs, Area Chairs, Reviewers, Authors
+Revisions
+CC BY 4.0
+Subject Area: Vision, language, and reasoning
+Author Contribution Types Confirmed: I have reviewed and understand the guidelines on contribution types and confirm my choice.
+Author Contribution Type: Applied/Systems
+Student Paper: Yes
+External Link: I confirm that there are no external links that expand content and subvert the reviewing process, or “prompt injection”, neither in the paper submission nor in the supplementary material.
+Abstract:
+Reinforcement Learning (RL) has achieved impressive success in post-training Large Language Models (LLMs) and Vision-Language Models (VLMs), with on-policy algorithms such as PPO, GRPO, and REINFORCE++ serving as the dominant paradigm. However, these methods discard all collected trajectories after a single gradient update, resulting in poor sample efficiency, particularly wasteful for agentic tasks where multi-turn environment interactions are expensive. While Experience Replay drives sample efficiency in classic RL by allowing agents to reuse past trajectories and prioritize informative ones, directly applying Prioritized Experience Replay (PER) to LLMs fails. The rapid policy evolution of billion-parameter models renders stored priorities stale, causing old high-priority trajectories to dominate sampling long after they have become uninformative. We propose FreshPER, which addresses this priority staleness problem by augmenting any PER-based priority with a multiplicative exponential age decay grounded in effective sample size analysis. To the best of our knowledge, FreshPER is the first work to successfully apply PER to LLM/VLM reinforcement learning. We evaluate on seven multi-step agentic and reasoning tasks with 0.5B, 3B, and 7B models. FreshPER significantly outperforms on-policy baselines, achieving +46% on NQ Search, +367% on Sokoban, and +133% on VLM FrozenLake, while standard PER without age decay consistently degrades performance. The code will be released upon acceptance.
+
+Supplementary Material:  pdf
+Submission Number: 7581
+Filter by reply type...
+Filter by author...
+Search keywords...
+
+Sort: Newest First
+3 / 3 replies shown
+Add:
+Review of #7581
+Official Reviewby Reviewer UVMX21 Apr 2026, 04:28 (modified: 03 May 2026, 01:53)Program Chairs, Senior Area Chairs, Area Chairs, Reviewers, AuthorsRevisions
+Choose The Contribution Type You Are Using For Your Review: Theory/Foundational
+Justify The Above Choice:
+I agree.
+
+Paper Summary:
+This paper proposes FreshPER, which addresses "priority staleness" in LLM/VLM reinforcement learning by multiplying any PER base priority with an exponential age decay factor. The core observation is that LLM policies evolve rapidly during training, causing stored trajectories to retain high priorities long after their actual learning value has diminished, leading to systematic degradation of standard PER. FreshPER assigns each trajectory the following priority:
+
+ 
+
+where 
+ reflects sample informativeness and 
+ reflects sample freshness, motivated by an effective sample size (ESS) analysis. The method is evaluated across eight environments (six LLM tasks, two VLM tasks) and three model scales (0.5B / 3B / 7B), achieving substantial gains on challenging agentic tasks: NQ Search +46%, Sobokan Simple +367%, VLM FrozenLake +133%.
+
+Paper Strengths:
+1. The paper addresses a practically important problem in LLM RL, and experimental results demonstrate the method's effectiveness.
+
+In agentic RL settings, each trajectory is prohibitively expensive to collect (multi-turn tool calls, vector retrieval, etc., accounting for an estimated 70% of total wall-clock training time), while on-policy methods discard each trajectory after a single use. FreshPER substantially improves sample efficiency through experience replay, achieving the largest gains precisely on tasks where on-policy training struggles or collapses.
+
+2. The theoretical derivation motivating priority staleness is rigorous and provides principled justification for the exponential decay form.
+
+The paper derives the age decay factor through a tight theoretical chain: starting from the effective sample size (ESS), proceeding through 
+-divergence, Rényi divergence, and KL divergence, it shows that each sample's effective contribution decays exponentially with policy divergence. Combined with a linear approximation of KL divergence growth over gradient steps, this naturally yields the 
+ form. Each step in the derivation is mathematically grounded, making the exponential decay a principled design decision rather than a heuristic choice.
+
+Major Weaknesses:
+W1. There is a gap between the theoretical treatment of off-policy correction and the actual implementation.
+
+Section 3.3 extensively motivates the necessity of the policy importance ratio 
+, and Algorithm 1 Line 3 explicitly stores the behavior log-probabilities 
+ (presumably to compute 
+). However, the actual training loss (Eq. 16) is:
+
+$$\mathcal{L}{\text{replay}} = \frac{1}{B}\sum{i=1}^B w_i \cdot \ell_i$$
+
+where 
+ is solely the PER sampling bias correction weight, independent of the policy. A theoretically complete off-policy policy gradient should take the form:
+
+ 
+ 
+
+The paper never provides the complete formula for 
+, leaving it unclear whether 
+ is folded into 
+ or simply not used. If the latter, the off-policy distribution mismatch correction relies entirely on age decay as a heuristic, addressing only sampling bias rather than distributional shift — a fundamental contradiction with the theoretical exposition in Section 3.3.
+
+W2. The paper lacks experimental comparison with the most directly related concurrent work.
+
+The paper claims FreshPER is "the first work to successfully apply PER to LLM/VLM reinforcement learning," yet provides no experimental comparison against the following concurrent works:
+
+Zhang, Hongzhi, et al. "RLEP: Reinforcement Learning with Experience Replay for LLM Reasoning."
+Fatemi, Mehdi. "Prioritized Replay for RL Post-training."
+RLEP was publicly available well before any reasonable ECCV 2026 submission deadline. Without these comparisons, the paper's core novelty claim cannot be independently verified.
+
+W3. The staleness of advantage estimates is not discussed.
+
+The advantage estimate 
+ is computed at trajectory collection time and stored fixed in the replay buffer, never updated as the policy evolves. As training progresses, the policy's value landscape shifts, and stale advantage estimates may produce misleading gradient directions. This issue is entirely absent from the paper. The ESS analysis addresses the decay of sample weights but does not touch the validity of the advantage estimates themselves.
+
+W4. The training paradigm is inconsistently characterized.
+
+The paper's contribution statement describes the method as "a complete off-policy training pipeline," yet Algorithm 1 clearly shows that each iteration consists of both an on-policy update step (Lines 1–5) and off-policy replay updates (Lines 7–11), making it a hybrid on/off-policy scheme. Furthermore, the Introduction devotes most of its text to motivating the limitations of on-policy RL, then abruptly introduces an off-policy solution in the contributions, leaving a conspicuous logical gap.
+
+Minor Weaknesses:
+W5. The VLM contribution is weak.
+
+Only two of the eight evaluation tasks involve vision (FrozenLake VLM and GeoQA). The gain on GeoQA is merely +1.3% (0.475 → 0.481). The method's applicability to multimodal settings is asserted rather than demonstrated.
+
+W6. Presentation and citation issues.
+
+Two evaluation benchmarks have citation problems: AIME lacks any specification of the problem source, year range, or subset used (lines 292–294), making the experimental setup unreproducible; GeoQA (Chen J, Tang J, Qin J, et al. "GeoQA: A Geometric Question Answering Benchmark Towards Multimodal Numerical Reasoning") is a published benchmark that is not cited anywhere in the paper.
+
+W7. The benchmark selection is misaligned with the paper's core motivation.
+
+The paper motivates FreshPER primarily through the high cost of agentic RL data collection, yet only one of the eight evaluated tasks (NQ Search) involves genuine multi-turn tool use. The remaining tasks are either toy grid-world navigation environments or pure reasoning tasks with no environment interaction, which is insufficient to support the central claim that FreshPER meaningfully reduces agentic data collection costs. If the method's core value lies in reducing expensive agentic collection overhead, validation on more representative agentic settings — such as code execution or multi-tool coordination — is needed.
+
+Other questions: Q1. Please provide the complete formula for 
+ in Eq. 16. Does the replay training loss include an explicit policy importance ratio 
+? If so, how is it computed and clipped? If not, what is the actual role of the stored behavior log-probabilities 
+ (Algorithm 1, Line 3) during training?
+
+Q2. Can the authors provide a direct experimental comparison against RLEP [44]?
+
+Q3. The advantage estimate 
+ is frozen at collection time. As the policy evolves, how can the authors ensure that stored advantage estimates continue to provide correct learning signals? Is age decay alone sufficient to address this issue?
+
+Preliminary Recommendation: 3: Borderline Reject
+Justification Of Preliminary Recommendation:
+FreshPER addresses a genuine failure mode in LLM RL with a theoretically motivated and practically simple solution, demonstrating meaningful performance gains on challenging agentic tasks. However, the paper has several issues that preclude acceptance in its current form: the core novelty claim cannot be verified without experimental comparison against RLEP and related concurrent work; the theoretical treatment of off-policy correction is inconsistent with the presented loss function; and the VLM contribution is limited to only two datasets, with GeoQA showing a negligible +1.3% improvement. We therefore recommend weak reject.
+
+Suggestions For Rebuttal:
+Please give feedback to the above-mentioned weaknesses and questions.
+
+Ethics Review Flag: No
+Confidence Level: 4: High Confidence - The reviewer has strong expertise in the area. They are highly familiar with the relevant literature and can critically evaluate the paper.
+Freshness-Aware Replay for LLM/VLM RL
+Official Reviewby Reviewer QUzc19 Apr 2026, 18:35 (modified: 03 May 2026, 01:53)Program Chairs, Senior Area Chairs, Area Chairs, Reviewers, AuthorsRevisions
+Choose The Contribution Type You Are Using For Your Review: Algorithms/General
+Justify The Above Choice:
+The main contribution of this paper is a new replay prioritization mechanism, supported by theoretical motivation and empirical evaluation. Therefore, I think the novelty is mainly methodological.
+
+Paper Summary:
+This paper proposes a new experience replay method for LLM/VLM reinforcement learning. The authors argue that on-policy RL uses each trajectory only once, which is wasteful in multi-turn agentic settings, and that standard replay methods fail because priorities become stale as the policy changes rapidly. To address this, they propose FreshPER, motivated by an ESS-based argument, and integrate it into an off-policy training pipeline on top of ROLL. Experiments on 0.5B, 3B, and 7B models show that the method performs better than both on-policy training and standard PER.
+
+Paper Strengths:
+The problem the paper focuses on is important: how to improve the data reuse mechanism in expensive multi-turn LLM/VLM RL settings.
+
+The method is simple and well motivated. The failure mode of standard PER that they identify is convincing, and the freshness-aware decay they propose is a clean fix.
+
+The experimental results are broad and strong. Standard PER performs poorly, while FreshPER shows better performance than both on-policy training and standard PER.
+
+The ablations on (\tau) and IS correction are useful.
+
+Major Weaknesses:
+The motivation mainly comes from sample efficiency and expensive interaction, but the evaluation focuses more on peak performance than on fixed interaction budgets, rollout budgets, or wall-clock savings. If these aspects are added, the paper would be better validated.
+
+The baselines are somewhat limited. The paper lacks comparisons with stronger replay/off-policy baselines beyond on-policy training and standard PER.
+
+The theoretical motivation is still heuristic at an important step, since policy divergence is approximated through elapsed gradient steps and absorbed into the tunable hyperparameter (\tau). The ablations also suggest nontrivial sensitivity to this choice.
+
+Minor Weaknesses:
+The paper would benefit from reporting fixed-budget results in the main paper.
+
+The empirical validation is mainly on REINFORCE++, so generality to PPO/GRPO-style setups is argued more than demonstrated.
+
+Preliminary Recommendation: 4: Borderline Accept
+Justification Of Preliminary Recommendation:
+The problem the paper focuses on is important, the proposed method is simple and well motivated, and the experimental results are positive. FreshPER shows convincingly better performance than standard PER. Overall, I see this as a borderline-accept paper with a clean and useful contribution.
+
+Suggestions For Rebuttal:
+Please report at least one fixed interaction budget or fixed rollout budget comparison.
+
+Please compare against at least one stronger replay/off-policy baseline beyond standard PER.
+
+Please clarify how sensitive performance is to (\tau), and whether a simple tuning heuristic works across tasks.
+
+Ethics Review Flag: No
+Confidence Level: 4: High Confidence - The reviewer has strong expertise in the area. They are highly familiar with the relevant literature and can critically evaluate the paper.
+Review for Submission7581
+Official Reviewby Reviewer 7Zqh18 Apr 2026, 08:30 (modified: 03 May 2026, 01:53)Program Chairs, Senior Area Chairs, Area Chairs, Reviewers, AuthorsRevisions
+Choose The Contribution Type You Are Using For Your Review: Algorithms/General
+Justify The Above Choice:
+This paper proposes an extension of widely-used priority experience replay, which is a general algorithm design for reinforcement learning rather than a specific application.
+
+Paper Summary:
+The paper says that reinforcement learning for LLMs and VLMs is currently very wasteful because popular on-policy methods use each collected trajectory only once, which is especially costly for multi-step agent tasks, and it introduces FreshPER as a way to safely reuse old experience. The key idea is that standard prioritized experience replay fails for large models because their policies change so quickly that trajectories that once looked highly useful become stale, yet ordinary PER keeps oversampling them; FreshPER fixes this by multiplying the replay priority by an exponential age-decay term so older samples gradually become less likely to be reused.
+
+Paper Strengths:
+It tackles an important practical problem: post-training RL for LLMs/VLMs is sample-inefficient because expensive trajectories are usually used once and discarded.
+The method is well motivated, not just empirically but also by an effective-sample-size argument tying policy drift to an exponential loss of usefulness in older data.
+It is easy to plug into an existing replay pipeline: the paper presents FreshPER as a lightweight modification to PER rather than a whole new RL algorithm.
+The empirical story is clean: standard PER often hurts, while FreshPER improves performance, which strongly supports the paper’s central claim that “freshness” is the missing ingredient.
+Major Weaknesses:
+The theoretical justification is only partial. The key step approximates policy divergence as proportional to elapsed gradient steps, which is reasonable but still heuristic rather than a tight adaptive estimate. The connection between (12) and (13) is loose.
+The experimental setup appears limited to REINFORCE++, even though the paper frames FreshPER as broadly compatible with PER-style priorities; that leaves open how well it transfers to PPO, GRPO, or other common post-training algorithms.
+SOTA algorithms in those evaluation benchmarks are not involved as baselines.
+Some evaluation tasks are relatively controlled or synthetic, such as gridworld-style environments.
+Error bounds were not provided.
+Minor Weaknesses:
+n.a.
+
+Preliminary Recommendation: 3: Borderline Reject
+Justification Of Preliminary Recommendation:
+More solid empirical results should be provided.
+
+Suggestions For Rebuttal:
+Please check the weaknesses.
+
+Ethics Review Flag: No
+Confidence Level: 3: Moderate Confidence - The reviewer is reasonably knowledgeable about the topic. They understand the paper's methodology and results but may not be a leading expert in the specific subfield.

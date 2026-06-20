@@ -1,0 +1,12 @@
+% Scaling Multimodal Large Language Models (MLLMs) to hours-long videos is severely bottlenecked by context windows.
+Adapting Multimodal Large Language Models (MLLMs) for hour-long video understanding is severely bottlenecked by context window limits.
+%
+Dense visual streams quickly saturate input token budgets and exacerbate the \emph{lost-in-the-middle} phenomenon. Existing efficiency heuristics, such as sparse sampling or query-agnostic uniform pooling, blindly sacrifice fidelity. They frequently discard transient decisive moments, blur fine-grained evidence, and waste representational bandwidth on irrelevant backgrounds.
+%
+In this paper, we propose \textbf{Tempo}, an efficient, query-aware framework that compresses long videos for downstream understanding. Tempo leverages a Small Vision-Language Model (SVLM) to act as a local temporal compressor. It casts visual token reduction as an early cross-modal distillation process, generating compact, intent-aligned video representations in a single forward pass.
+%
+To enforce strict inference budgets without breaking causality, we introduce \textbf{Adaptive Token Allocation (ATA)}. Exploiting the SVLM's inherent zero-shot relevance prior and empirical semantic front-loading, ATA acts as a training-free, $O(1)$ dynamic router. It allocates dense bandwidth to query-critical segments while compressing redundancies into minimal \emph{temporal anchors} to maintain the global storyline.
+%
+Extensive experiments demonstrate that our compact 6B architecture achieves state-of-the-art performance with aggressive dynamic compression (0.5--16 tokens/frame). On the extreme-long LVBench (4101s), Tempo scores \textbf{52.3} under a strict 8K visual token budget, outperforming proprietary baselines such as GPT-4o and Gemini 1.5 Pro. Scaling to 2048 frames pushes performance to \textbf{53.7}.
+%
+Crucially, empirical profiling reveals that Tempo frequently compresses hour-long videos to token counts substantially below theoretical computational limits, proving that true long-form video understanding relies on intent-driven efficiency rather than greedily padded context windows.

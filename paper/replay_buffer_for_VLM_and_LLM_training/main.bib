@@ -1,0 +1,654 @@
+% Long form of conference & journal abbreviations -- especially for camera ready
+@String(PAMI  = {IEEE Trans. Pattern Anal. Mach. Intell.})
+@String(IJCV  = {Int. J. Comput. Vis.})
+@String(CVPR  = {IEEE Conf. Comput. Vis. Pattern Recog.})
+@String(ICCV  = {Int. Conf. Comput. Vis.})
+@String(ECCV  = {Eur. Conf. Comput. Vis.})
+@String(NeurIPS = {Adv. Neural Inform. Process. Syst.})
+@String(ICML  = {Int. Conf. Mach. Learn.})
+@String(ICLR  = {Int. Conf. Learn. Represent.})
+@String(AAAI  = {AAAI})
+@String(JMLR  = {J. Mach. Learn. Res.})
+
+% Short form overrides (for submission)
+@String(PAMI  = {IEEE TPAMI})
+@String(IJCV  = {IJCV})
+@String(CVPR  = {CVPR})
+@String(ICCV  = {ICCV})
+@String(ECCV  = {ECCV})
+@String(NeurIPS = {NeurIPS})
+@String(ICML  = {ICML})
+@String(ICLR  = {ICLR})
+@String(AAAI  = {AAAI})
+@String(JMLR  = {JMLR})
+
+
+% ===========================================================================
+% Core RL and Experience Replay
+% ===========================================================================
+
+@article{lin1992self,
+    author = {Long-Ji Lin},
+    title = {Self-Improving Reactive Agents Based on Reinforcement Learning, Planning and Teaching},
+    journal = {Machine Learning},
+    volume = {8},
+    number = {3-4},
+    pages = {293--321},
+    year = {1992}
+}
+
+@article{mnih2015human,
+    author = {Volodymyr Mnih and Koray Kavukcuoglu and David Silver and Andrei A. Rusu and Joel Veness and Marc G. Bellemare and Alex Graves and Martin Riedmiller and Andreas K. Fidjeland and Georg Ostrovski and others},
+    title = {Human-Level Control Through Deep Reinforcement Learning},
+    journal = {Nature},
+    volume = {518},
+    number = {7540},
+    pages = {529--533},
+    year = {2015}
+}
+
+@inproceedings{schaul2016per,
+    author = {Tom Schaul and John Quan and Ioannis Antonoglou and David Silver},
+    title = {Prioritized Experience Replay},
+    booktitle = ICLR,
+    year = {2016}
+}
+
+@inproceedings{andrychowicz2017her,
+    author = {Marcin Andrychowicz and Filip Wolski and Alex Ray and Jonas Schneider and Rachel Fong and Peter Welinder and Bob McGrew and Josh Tobin and Pieter Abbeel and Wojciech Zaremba},
+    title = {Hindsight Experience Replay},
+    booktitle = NeurIPS,
+    year = {2017}
+}
+
+@article{fedus2020revisiting,
+    author = {William Fedus and Prajit Ramachandran and Aravind Rajeswaran and Charles Blundell and Timothy Lillicrap and others},
+    title = {Revisiting Fundamentals of Experience Replay},
+    journal = {arXiv preprint arXiv:2007.06700},
+    year = {2020}
+}
+
+% ===========================================================================
+% Policy Gradient, PPO, Trust Regions, and Distributed RL
+% ===========================================================================
+
+@inproceedings{schulman2015trpo,
+    author = {John Schulman and Sergey Levine and Pieter Abbeel and Michael Jordan and Philipp Moritz},
+    title = {Trust Region Policy Optimization},
+    booktitle = ICML,
+    year = {2015}
+}
+
+@article{schulman2017ppo,
+    author = {John Schulman and Filip Wolski and Prajit Dhariwal and Alec Radford and Oleg Klimov},
+    title = {Proximal Policy Optimization Algorithms},
+    journal = {arXiv preprint arXiv:1707.06347},
+    year = {2017}
+}
+
+@inproceedings{espeholt2018impala,
+    author = {Lasse Espeholt and Hubert Soyer and Remi Munos and Karen Simonyan and Vlad Mnih and Tom Ward and Yotam Doron and Vlad Firoiu and Tim Harley and Iain Dunning and others},
+    title = {{IMPALA}: Scalable Distributed Deep-{RL} with Importance Weighted Actor-Learner Architectures},
+    booktitle = ICML,
+    year = {2018}
+}
+
+@inproceedings{horgan2018distributed,
+    author = {Dan Horgan and John Quan and David Budden and Gabriel Barth-Maron and Matteo Hessel and Hado van Hasselt and David Silver},
+    title = {Distributed Prioritized Experience Replay},
+    booktitle = ICLR,
+    year = {2018}
+}
+
+% ===========================================================================
+% Importance Sampling Theory
+% ===========================================================================
+
+@article{van_Erven_2014,
+    author = {Tim van Erven and Peter Harremo{\"e}s},
+    title = {R{\'e}nyi Divergence and {K}ullback-{L}eibler Divergence},
+    journal = {IEEE Transactions on Information Theory},
+    volume = {60},
+    number = {7},
+    pages = {3797--3820},
+    year = {2014}
+}
+
+@article{metelli2020importance,
+    author = {Alberto Maria Metelli and Matteo Papini and Nico Montali and Marcello Restelli},
+    title = {Importance Sampling Techniques for Policy Optimization},
+    journal = JMLR,
+    volume = {21},
+    number = {141},
+    pages = {1--75},
+    year = {2020}
+}
+
+@article{kong1992note,
+    author = {Augustine Kong},
+    title = {A Note on Importance Sampling Using Standardized Weights},
+    journal = {University of Chicago, Department of Statistics, Technical Report},
+    number = {348},
+    year = {1992}
+}
+
+% ===========================================================================
+% Replay Ratio and Sample Efficiency in Classic RL
+% ===========================================================================
+
+@inproceedings{doro2023sampleefficient,
+    author = {Pierluca D'Oro and Max Schwarzer and Evgenii Nikishin and Pierre-Luc Bacon and Marc G. Bellemare and Aaron Courville},
+    title = {Sample-Efficient Reinforcement Learning by Breaking the Replay Ratio Barrier},
+    booktitle = ICLR,
+    year = {2023}
+}
+
+@inproceedings{schwarzer2023bbf,
+    author = {Max Schwarzer and Johan Obando-Ceron and Aaron Courville and Marc Bellemare and Rishabh Agarwal and Pablo Samuel Castro},
+    title = {Bigger, Better, Faster: Human-Level {Atari} with Human-Level Efficiency},
+    booktitle = ICML,
+    year = {2023}
+}
+
+% ===========================================================================
+% RLHF, Alignment, and LLM RL Algorithms
+% ===========================================================================
+
+@inproceedings{ouyang2022training,
+    author = {Long Ouyang and Jeffrey Wu and Xu Jiang and Diogo Almeida and Carroll Wainwright and Pamela Mishkin and Chong Zhang and Sandhini Agarwal and Katarina Slama and Alex Ray and others},
+    title = {Training Language Models to Follow Instructions with Human Feedback},
+    booktitle = NeurIPS,
+    year = {2022}
+}
+
+@article{bai2022constitutional,
+    author = {Yuntao Bai and Saurav Kadavath and Sandipan Kundu and Amanda Askell and Jackson Kernion and Andy Jones and Anna Chen and Anna Goldie and Azalia Mirhoseini and Cameron McKinnon and others},
+    title = {Constitutional {AI}: Harmlessness from {AI} Feedback},
+    journal = {arXiv preprint arXiv:2212.08073},
+    year = {2022}
+}
+
+@inproceedings{rafailov2023dpo,
+    author = {Rafael Rafailov and Archit Sharma and Eric Mitchell and Stefano Ermon and Christopher D. Manning and Chelsea Finn},
+    title = {Direct Preference Optimization: Your Language Model is Secretly a Reward Model},
+    booktitle = NeurIPS,
+    year = {2023}
+}
+
+@article{shao2024deepseekmath,
+    author = {Zhihong Shao and Peiyi Wang and Qihao Zhu and Runxin Xu and Junxiao Song and Mingchuan Zhang and Y.K. Li and Y. Wu and Daya Guo},
+    title = {{DeepSeekMath}: Pushing the Limits of Mathematical Reasoning in Open Language Models},
+    journal = {arXiv preprint arXiv:2402.03300},
+    year = {2024}
+}
+
+@article{ahmadian2024back,
+    author = {Arash Ahmadian and Chris Cremer and Matthias Gall{\'e} and Marzieh Fadaee and Julia Kreutzer and Olivier Pietquin and Ahmet {\"U}st{\"u}n and Sara Hooker},
+    title = {Back to Basics: Revisiting {REINFORCE} Style Optimization for Learning from Human Feedback in {LLM}s},
+    journal = {arXiv preprint arXiv:2402.14740},
+    year = {2024}
+}
+
+@article{li2023remax,
+    author = {Ziniu Li and Tian Xu and Yushun Zhang and Yang Yu and Ruoyu Sun and Zhi-Quan Luo},
+    title = {{ReMax}: A Simple, Effective, and Efficient Reinforcement Learning Method for Aligning Large Language Models},
+    journal = {arXiv preprint arXiv:2310.10505},
+    year = {2023}
+}
+
+@article{deepseekr1,
+    author = {{DeepSeek-AI}},
+    title = {{DeepSeek-R1}: Incentivizing Reasoning Capability in {LLMs} via Reinforcement Learning},
+    journal = {arXiv preprint arXiv:2501.12948},
+    year = {2025}
+}
+
+@article{yu2025dapo,
+    author = {Qiying Yu and Zheng Zhang and Ruofei Zhu and Yufeng Yuan and Xiaochen Zuo and Yu Yue and Tiantian Fan and Gaohang Chen and Lingjun Liu and Xin Liu and others},
+    title = {{DAPO}: An Open-Source {LLM} Reinforcement Learning System at Scale},
+    journal = {arXiv preprint arXiv:2503.14476},
+    year = {2025}
+}
+
+@article{hu2025reinforce++,
+    author = {Jian Hu and Jason Klein Liu and Haotian Xu and Wei Shen},
+    title = {{REINFORCE++}: Stabilizing Critic-Free Policy Optimization with Global Advantage Normalization},
+    journal = {arXiv preprint arXiv:2501.03262},
+    year = {2025}
+}
+
+@article{liu2025drgrpo,
+    author = {Zichen Liu and Changyu Chen and Wenjun Li and Penghui Qi and Tianyu Pang and Chao Du and Wee Sun Lee and Min Lin},
+    title = {Understanding {R1}-Zero-Like Training: A Critical Perspective},
+    journal = {arXiv preprint arXiv:2503.20783},
+    year = {2025}
+}
+
+@article{dong2024rlhfworkflow,
+    author = {Hanze Dong and Wei Xiong and Bo Pang and Haoxiang Wang and Han Zhao and Yingbo Zhou and Nan Jiang and Doyen Sahoo and Caiming Xiong and Tong Zhang},
+    title = {{RLHF} Workflow: From Reward Modeling to Online {RLHF}},
+    journal = {arXiv preprint arXiv:2405.07863},
+    year = {2024}
+}
+
+@inproceedings{zelikman2022star,
+    author = {Eric Zelikman and Yuhuai Wu and Jesse Mu and Noah D. Goodman},
+    title = {{STaR}: Bootstrapping Reasoning With Reasoning},
+    booktitle = NeurIPS,
+    year = {2022}
+}
+
+@article{gulcehre2023rest,
+    author = {Caglar Gulcehre and Tom Le Paine and Srivatsan Srinivasan and Ksenia Konyushkova and Lotte Weerts and Abhishek Sharma and Aditya Siddhant and Alex Ahern and Miaosen Wang and Chenjie Gu and others},
+    title = {Reinforced Self-Training ({ReST}) for Language Modeling},
+    journal = {arXiv preprint arXiv:2308.08998},
+    year = {2023}
+}
+
+@article{singh2024restem,
+    author = {Avi Singh and John D. Co-Reyes and Rishabh Agarwal and Ankesh Anand and Piyush Patil and Peter J. Liu and James Harrison and Jaehoon Lee and Kelvin Xu and Aaron Parisi and others},
+    title = {Beyond Human Data: Scaling Self-Training for Problem-Solving with Language Models},
+    journal = {Transactions on Machine Learning Research},
+    year = {2024}
+}
+
+@article{cui2025prime,
+    author = {Ganqu Cui and Lifan Yuan and Zefan Wang and Hanbin Wang and Wendi Li and Bingxiang He and Yuchen Fan and Tianyu Yu and Qixin Xu and Weize Chen and others},
+    title = {Process Reinforcement through Implicit Rewards},
+    journal = {arXiv preprint arXiv:2502.01456},
+    year = {2025}
+}
+
+@article{zeng2025simplerl,
+    author = {Weihao Zeng and Yuzhen Huang and Qian Liu and Wei Liu and Keqing He and Zejun Ma and Junxian He},
+    title = {{SimpleRL-Zoo}: Investigating and Taming Zero Reinforcement Learning for Open Base Models in the Wild},
+    journal = {arXiv preprint arXiv:2503.18892},
+    year = {2025}
+}
+
+@article{hu2025openreasonerzero,
+    author = {Jingcheng Hu and Yinmin Zhang and Qi Han and Daxin Jiang and Xiangyu Zhang and Heung-Yeung Shum},
+    title = {{Open-Reasoner-Zero}: An Open Source Approach to Scaling Up Reinforcement Learning on the Base Model},
+    journal = {arXiv preprint arXiv:2503.24290},
+    year = {2025}
+}
+
+@article{lightman2023verify,
+    author = {Hunter Lightman and Vineet Kosaraju and Yura Burda and Harri Edwards and Bowen Baker and Teddy Lee and Jan Leike and John Schulman and Ilya Sutskever and Karl Cobbe},
+    title = {Let's Verify Step by Step},
+    journal = {arXiv preprint arXiv:2305.20050},
+    year = {2023}
+}
+
+% ===========================================================================
+% Off-Policy Methods for LLMs
+% ===========================================================================
+
+@article{areal2025,
+    author = {Wei Fu and Jiaxuan Gao and Xujie Shen and Chen Zhu and Siheng Li and Wanpeng Zhang and Yue Wu and Tianbao Xie and Yongfeng Zhang and Tao Yu and Zhiwei Jia and Zhaoran Wang},
+    title = {{AReaL}: A Large-Scale Asynchronous Reinforcement Learning System for Language Reasoning},
+    journal = {arXiv preprint arXiv:2505.24298},
+    year = {2025}
+}
+
+@article{tang2024understanding,
+    author = {Yunhao Tang and Zhaohan Daniel Guo and Zeyu Zheng and Daniele Calandriello and R{\'e}mi Munos and Mark Rowland and Pierre Harvey Richemond and Michal Valko and Bernardo {\'A}vila Pires and Bilal Piot},
+    title = {Understanding the Performance Gap Between Online and Offline Alignment Algorithms},
+    journal = {arXiv preprint arXiv:2405.08448},
+    year = {2024}
+}
+
+@article{schmitt2020off,
+    author = {Simon Schmitt and Jonathan J. Hudson and Augustin Zidek and Simon Osindero and Carl Doersch and Wojciech M. Czarnecki and Joel Z. Leibo and Heinrich K{\"u}ttler and Andrew Zisserman and Karen Simonyan and others},
+    title = {Off-Policy Actor-Critic with Shared Experience Replay},
+    journal = {arXiv preprint arXiv:1909.11583},
+    year = {2020}
+}
+
+@article{noukhovitch2024async,
+    author = {Michael Noukhovitch and Shengyi Huang and Sophie Xhonneux and Arian Hosseini and Rishabh Agarwal and Aaron Courville},
+    title = {Asynchronous {RLHF}: Faster and More Efficient Off-Policy {RL} for Language Models},
+    journal = {arXiv preprint arXiv:2410.18252},
+    year = {2024}
+}
+
+@article{leroux2025topr,
+    author = {Nicolas Le Roux and Marc G. Bellemare and Jonathan Lebensold and Arnaud Bergeron and Joshua Greaves and others},
+    title = {Tapered Off-Policy {REINFORCE}: Stable and Efficient Reinforcement Learning for {LLM}s},
+    journal = {arXiv preprint arXiv:2503.14286},
+    year = {2025}
+}
+
+@article{m2po2025,
+    author = {Haizhong Zheng and Jiawei Zhao and Beidi Chen},
+    title = {Prosperity before Collapse: How Far Can Off-Policy {RL} Reach with Stale Data on {LLM}s?},
+    journal = {arXiv preprint arXiv:2510.01161},
+    year = {2025}
+}
+
+@article{bapo2025,
+    author = {Zhiheng Xi and Xin Guo and Yang Nan and Enyu Zhou and Junrui Shen and others},
+    title = {{BAPO}: Stabilizing Off-Policy Reinforcement Learning for {LLM}s via Balanced Policy Optimization with Adaptive Clipping},
+    journal = {arXiv preprint arXiv:2510.18927},
+    year = {2025}
+}
+
+@article{r2vpo2026,
+    author = {Yu Luo and Shuo Han and Yihan Hu and Dong Li and Jianye Hao},
+    title = {{R2VPO}: Ratio-Variance Regularized Policy Optimization for Efficient {LLM} Fine-tuning},
+    journal = {arXiv preprint arXiv:2601.03320},
+    year = {2026}
+}
+
+@article{copris2025,
+    author = {Zekai Qu and others},
+    title = {{CoPRIS}: Efficient and Stable {RL} via Concurrency-Controlled Partial Rollout with Importance Sampling},
+    journal = {arXiv preprint arXiv:2511.05589},
+    year = {2025}
+}
+
+@article{fatemi2026prioritized,
+    author = {Mehdi Fatemi and Banafsheh Rafiee and Kavosh Asadi and Yaqiao Li and Yunhao Tang and Yongchao Zhou and Dzmitry Bahdanau},
+    title = {Prioritized Replay for {RL} Post-training},
+    journal = {arXiv preprint arXiv:2601.02648},
+    year = {2026}
+}
+
+% ===========================================================================
+% Experience Replay for LLM RL (Most Directly Related)
+% ===========================================================================
+
+@article{zhang2025rlep,
+    author = {Hongzhi Zhang and Jia Fu and Jingyuan Zhang and others},
+    title = {{RLEP}: Reinforcement Learning with Experience Replay for {LLM} Reasoning},
+    journal = {arXiv preprint arXiv:2507.07451},
+    year = {2025}
+}
+
+@article{dots2025,
+    author = {Yifan Sun and Jingyan Shen and Yibin Wang and Tianyu Chen and Zhendong Wang and others},
+    title = {Improving Data Efficiency for {LLM} Reinforcement Fine-tuning Through Difficulty-targeted Online Data Selection and Rollout Replay},
+    journal = {arXiv preprint arXiv:2506.05316},
+    year = {2025}
+}
+
+@article{dou2025rrl,
+    author = {Shihan Dou and others},
+    title = {Improving {RL} Exploration for {LLM} Reasoning through Retrospective Replay},
+    journal = {arXiv preprint arXiv:2504.14363},
+    year = {2025}
+}
+
+@article{liu2025lorr,
+    author = {Zichuan Liu and Jinyu Wang and Lei Song and Jiang Bian},
+    title = {Sample-efficient {LLM} Optimization with Reset Replay},
+    journal = {arXiv preprint arXiv:2508.06412},
+    year = {2025}
+}
+
+@article{ar3po2025,
+    author = {Yuheng Zhang and Wenlin Yao and Changlong Yu and Yao Liu and Qingyu Yin and others},
+    title = {{AR3PO}: Improving Sampling Efficiency in {RLVR} through Adaptive Rollout and Response Reuse},
+    journal = {arXiv preprint arXiv:2509.25808},
+    year = {2025}
+}
+
+@article{lanchantin2025bridging,
+    author = {Jack Lanchantin and Angelica Chen and Janice Lan and Xian Li and others},
+    title = {Bridging Offline and Online Reinforcement Learning for {LLM}s},
+    journal = {arXiv preprint arXiv:2506.21495},
+    year = {2025}
+}
+
+% ===========================================================================
+% Asynchronous and Distributed LLM RL Systems
+% ===========================================================================
+
+@article{wu2025llamarl,
+    author = {Bo Wu and Sid Wang and Yunhao Tang and Jia Ding and Eryk Helenowski and others},
+    title = {{LlamaRL}: A Distributed Asynchronous {RL} Framework for Efficient Large-scale {LLM} Training},
+    journal = {arXiv preprint arXiv:2505.24034},
+    year = {2025}
+}
+
+@article{pipelinerl2025,
+    author = {Alexandre Pich{\'e} and Ehsan Kamalloo and Rafael Pardinas and Xiaoyin Chen and Dzmitry Bahdanau},
+    title = {{PipelineRL}: Faster On-policy {RL} for Long Sequence Generation},
+    journal = {arXiv preprint arXiv:2509.19128},
+    year = {2025}
+}
+
+% ===========================================================================
+% Agentic LLM Tasks
+% ===========================================================================
+
+@inproceedings{yao2023webshop,
+    author = {Shunyu Yao and Howard Chen and John Yang and Karthik Narasimhan},
+    title = {{WebShop}: Towards Scalable Real-World Web Shopping Environments},
+    booktitle = NeurIPS,
+    year = {2022}
+}
+
+@inproceedings{le2022coderl,
+    author = {Hung Le and Yue Wang and Akhilesh Deepak Gotmare and Silvio Savarese and Steven C.H. Hoi},
+    title = {{CodeRL}: Mastering Code Generation through Pretrained Models and Deep Reinforcement Learning},
+    booktitle = NeurIPS,
+    year = {2022}
+}
+
+@inproceedings{schick2023toolformer,
+    author = {Timo Schick and Jane Dwivedi-Yu and Roberto Dessi and Roberta Raileanu and Maria Lomeli and Eric Hambro and Luke Zettlemoyer and Nicola Cancedda and Thomas Scialom},
+    title = {Toolformer: Language Models Can Teach Themselves to Use Tools},
+    booktitle = NeurIPS,
+    year = {2023}
+}
+
+@inproceedings{driess2023palme,
+    author = {Danny Driess and Fei Xia and Mehdi S. M. Sajjadi and Corey Lynch and Aakanksha Chowdhery and Brian Ichter and Ayzaan Wahid and Jonathan Tompson and Quan Vuong and Tianhe Yu and others},
+    title = {{PaLM-E}: An Embodied Multimodal Language Model},
+    booktitle = ICML,
+    year = {2023}
+}
+
+@article{putta2024agentq,
+    author = {Pranav Putta and Edmund Mills and Naman Garg and Sumeet Motwani and Chelsea Finn and Divyansh Garg and Rafael Rafailov},
+    title = {Agent {Q}: Advanced Reasoning and Learning for Autonomous {AI} Agents},
+    journal = {arXiv preprint arXiv:2408.07199},
+    year = {2024}
+}
+
+@article{qi2024webrl,
+    author = {Zehan Qi and Xiao Liu and Iat Long Iong and Hanyu Lai and Xueqiao Sun and Xin Jiang and others},
+    title = {{WebRL}: Training {LLM} Web Agents via Self-Evolving Online Curriculum Reinforcement Learning},
+    journal = {arXiv preprint arXiv:2411.02337},
+    year = {2024}
+}
+
+@article{wang2025ragen,
+    author = {Zihan Wang and Kangrui Wang and Qineng Wang and Pingyue Zhang and Linjie Li and Zhengyuan Yang and Kefan Yu and Minh-Long Luu and Jianfeng Gao and Yiping Lu},
+    title = {{RAGEN}: Understanding Self-Evolution in {LLM} Agents via Multi-Turn Reinforcement Learning},
+    journal = {arXiv preprint arXiv:2504.20073},
+    year = {2025}
+}
+
+@article{wang2025vagen,
+    author = {Kangrui Wang and Pingyue Zhang and Zihan Wang and Yaning Gao and Linjie Li and Qineng Wang and Hanyang Chen and Chi Wan and Yiping Lu and Zhengyuan Yang and Lijuan Wang and Ranjay Krishna and Jiajun Wu and Li Fei-Fei and Yejin Choi and Manling Li},
+    title = {{VAGEN}: Reinforcing World Model Reasoning for Multi-Turn {VLM} Agents},
+    journal = {arXiv preprint arXiv:2510.16907},
+    year = {2025}
+}
+
+@article{zhang2025agentrl,
+    author = {Hanchen Zhang and Xiao Liu and Bowen Lv and others},
+    title = {{AgentRL}: Scaling Agentic Reinforcement Learning with a Multi-Turn, Multi-Task Framework},
+    journal = {arXiv preprint arXiv:2510.04206},
+    year = {2025}
+}
+
+@article{wei2025webagent,
+    author = {Zhepei Wei and Wenlin Yao and Yao Liu and others},
+    title = {{WebAgent-R1}: Training Web Agents via End-to-End Multi-Turn Reinforcement Learning},
+    journal = {arXiv preprint arXiv:2505.16421},
+    year = {2025}
+}
+
+@article{wei2025swerl,
+    author = {Yuxiang Wei and Olivier Duchenne and Jade Copet and others},
+    title = {{SWE-RL}: Advancing {LLM} Reasoning via Reinforcement Learning on Open Software Evolution},
+    journal = {arXiv preprint arXiv:2502.18449},
+    year = {2025}
+}
+
+% ===========================================================================
+% VLM Reinforcement Learning
+% ===========================================================================
+
+@article{zhai2024rl4vlm,
+    author = {Yuexiang Zhai and Hao Bai and Zipeng Lin and Jiayi Pan and Shengbang Tong and Yifei Zhou and Alane Suhr and Saining Xie and Yann LeCun and Yi Ma and Sergey Levine},
+    title = {Fine-Tuning Large Vision-Language Models as Decision-Making Agents via Reinforcement Learning},
+    journal = {arXiv preprint arXiv:2405.10292},
+    year = {2024}
+}
+
+@article{huang2025visionr1,
+    author = {Wenxuan Huang and Bohan Jia and Zijie Zhai and others},
+    title = {{Vision-R1}: Incentivizing Reasoning Capability in Multimodal Large Language Models},
+    journal = {arXiv preprint arXiv:2503.06749},
+    year = {2025}
+}
+
+@article{shen2025vlmr1,
+    author = {Haozhan Shen and Peng Liu and Jingcheng Li and others},
+    title = {{VLM-R1}: A Stable and Generalizable {R1}-style Large Vision-Language Model},
+    journal = {arXiv preprint arXiv:2504.07615},
+    year = {2025}
+}
+
+@article{tan2025reasonrft,
+    author = {Huajie Tan and Yuheng Ji and Xiaoshuai Hao and others},
+    title = {{Reason-RFT}: Reinforcement Fine-Tuning for Visual Reasoning of Vision Language Models},
+    journal = {arXiv preprint arXiv:2503.20752},
+    year = {2025}
+}
+
+% ===========================================================================
+% Models
+% ===========================================================================
+
+@article{qwen2.5,
+    author = {{Qwen Team}},
+    title = {Qwen2.5 Technical Report},
+    journal = {arXiv preprint arXiv:2412.15115},
+    year = {2024}
+}
+
+@article{qwen2.5vl,
+    author = {{Qwen Team}},
+    title = {Qwen2.5-{VL} Technical Report},
+    journal = {arXiv preprint arXiv:2502.13923},
+    year = {2025}
+}
+
+% ===========================================================================
+% LLM RL Frameworks
+% ===========================================================================
+
+@article{wang2025roll,
+    author = {Weixun Wang and Shaopan Xiong and Gengru Chen and Wei Gao and Sheng Guo and Yancheng He and Ju Huang and Jiaheng Liu and Zhendong Li and Xiaoyang Li and Zichen Liu and Haizhou Zhao and others},
+    title = {{ROLL}: Reinforcement Learning Optimization for Large-Scale Learning: An Efficient and User-Friendly Scaling Library},
+    journal = {arXiv preprint arXiv:2506.06122},
+    year = {2025}
+}
+
+@article{sheng2024verl,
+    author = {Guangming Sheng and Chi Zhang and Zilingfeng Ye and Xibin Wu and Wang Zhang and Ru Zhang and Yanghua Peng and Haibin Lin and Chuan Wu},
+    title = {{HybridFlow}: A Flexible and Efficient {RLHF} Framework},
+    journal = {arXiv preprint arXiv:2409.19256},
+    year = {2024}
+}
+
+@article{hu2024openrlhf,
+    author = {Jian Hu and Xibin Wu and Wei Shen and Jason Klein Liu and Zilin Zhu and Weixun Wang and Songlin Jiang and Haoran Wang and Hao Chen and Bin Chen and others},
+    title = {{OpenRLHF}: An Easy-to-use, Scalable and High-performance {RLHF} Framework},
+    journal = {arXiv preprint arXiv:2405.11143},
+    year = {2024}
+}
+
+@misc{zhu2025slime,
+    author = {Zilin Zhu and Chengxing Xie and Xin Lv and {SLIME Contributors}},
+    title = {{SLIME}: An {SGLang}-Native Post-Training Framework for {RL} Scaling},
+    year = {2025},
+    howpublished = {\url{https://github.com/THUDM/slime}}
+}
+
+% ===========================================================================
+% Search Environment
+% ===========================================================================
+
+% ===========================================================================
+% Freshness-Aware PER
+% ===========================================================================
+
+@article{ma2022fper,
+    author = {Jue Ma and Dejun Ning and Chengyi Zhang and Shipeng Liu},
+    title = {Fresher Experience Plays a More Important Role in Prioritized Experience Replay},
+    journal = {Applied Sciences},
+    volume = {12},
+    number = {23},
+    pages = {12489},
+    year = {2022},
+    publisher = {MDPI}
+}
+
+@article{jin2025searchr1,
+    author = {Bowen Jin and Hansi Zeng and Zhenrui Yue and Jinsung Yoon and Sercan Arik and Dong Wang and Hamed Zamani and Jiawei Han},
+    title = {{Search-R1}: Training {LLMs} to Reason and Leverage Search Engines with Reinforcement Learning},
+    journal = {arXiv preprint arXiv:2503.09516},
+    year = {2025}
+}
+
+@article{cobbe2021gsm8k,
+    author = {Karl Cobbe and Vineet Kosaraju and Mohammad Bavarian and Mark Chen and Heewoo Jun and Lukasz Kaiser and Matthias Plappert and Jerry Tworek and Jacob Hilton and Reiichiro Nakano and Christopher Hesse and John Schulman},
+    title = {Training Verifiers to Solve Math Word Problems},
+    journal = {arXiv preprint arXiv:2110.14168},
+    year = {2021}
+}
+
+@misc{aimoValidationAime,
+    author = {{AI-MO}},
+    title = {{AIMO} Validation {AIME}},
+    year = {2025},
+    howpublished = {\url{https://huggingface.co/datasets/AI-MO/aimo-validation-aime}}
+}
+
+@misc{aopsAimeArchive,
+    author = {{Art of Problem Solving}},
+    title = {{AIME} Problems and Solutions Archive},
+    year = {2024},
+    howpublished = {\url{https://artofproblemsolving.com/wiki/index.php/AIME_Problems_and_Solutions}}
+}
+
+@inproceedings{chen2021geoqa,
+    author = {Jiaqi Chen and Jianheng Tang and Jinghui Qin and Xiaodan Liang and Lingbo Liu and Eric Xing and Liang Lin},
+    title = {{GeoQA}: A Geometric Question Answering Benchmark Towards Multimodal Numerical Reasoning},
+    booktitle = {Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021},
+    pages = {513--523},
+    year = {2021},
+    publisher = {Association for Computational Linguistics},
+    doi = {10.18653/v1/2021.findings-acl.46},
+    url = {https://aclanthology.org/2021.findings-acl.46/}
+}
+
+@article{openai2024o1,
+    author = {OpenAI},
+    title = {Learning to Reason with {LLMs}},
+    year = {2024},
+    url = {https://openai.com/index/learning-to-reason-with-llms/}
+}
+
+@article{rollflash2025,
+    author = {Luo Yu and Zhiyuan Zeng and Jiaze Chen and Qiying Yu and Jian Li and Yuchi Zhang and Hang Yan and Bairen Yi and Ao Liu and Tao Ji and Zhipeng Chen and Dahua Lin and Junbo Zhao and Zhi Zheng},
+    title = {{ROLL Flash}: Accelerating {RLVR} and Agentic Training with Asynchrony},
+    journal = {arXiv preprint arXiv:2510.11345},
+    year = {2025}
+}

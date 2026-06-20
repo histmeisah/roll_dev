@@ -1,0 +1,58 @@
+\section{Detailed Training Configurations}
+\label{supp:training_details}
+
+In the main paper, we introduced a progressive four-stage training curriculum to equip Tempo with long video understanding capabilities. To ensure reproducibility, we provide the detailed hyper-parameter configurations and optimization strategies for all stages extracted directly from our training framework.
+% A comprehensive breakdown of the dataset mixtures is provided in Sec.~\ref{supp:dataset_details}.
+
+\subsection{Optimization and Hardware Setup}
+
+All models are trained on a high-performance compute cluster. Stage 0 (modality alignment) uses 32 NVIDIA H100 (80GB) GPUs, while Stages 1--3 scale to 64 GPUs to accommodate the increased spatiotemporal processing requirements. To support the long sequence lengths of videos and our 6B-parameter architecture, we employ Fully Sharded Data Parallel (FSDP) together with gradient checkpointing. All training is performed in mixed precision (\texttt{bfloat16}) to reduce memory consumption while maintaining numerical stability.
+%
+Across all stages, we use the AdamW optimizer with a cosine learning rate scheduler and a 3\% warmup ratio. Weight decay is set to 0.0.
+
+\subsection{Stage-wise Hyper-parameters}
+
+As training progresses from spatial modality alignment (Stage 0) to long-context temporal reasoning (Stage 3), the temporal context length and maximum number of frames are gradually increased. To stabilize this scaling process, different subsets of model parameters are selectively frozen or unfrozen during training. The hyper-parameter configurations for each stage are summarized in Tab.~\ref{tab:hyperparameters}.
+
+
+\begin{table}[h]
+    \centering
+    \caption{\textbf{Hyper-parameter configurations across the four-stage training curriculum of Tempo.} \ding{51} indicates that the module is trainable, while \textcolor{gray}{\ding{55}} indicates that it is frozen during training.}
+    \label{tab:hyperparameters}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Configuration} & \textbf{Stage 0: Alignment} & \textbf{Stage 1: Pre-training} & \textbf{Stage 2: Broad SFT} & \textbf{Stage 3: Long-Context SFT} \\
+        \midrule
+        \multicolumn{5}{l}{\textit{Trainable Modules}} \\
+        Local Compressor (SVLM) & \textcolor{gray}{\ding{55} Frozen} & \ding{51} Unfrozen & \ding{51} Unfrozen & \textcolor{gray}{\ding{55} Frozen} \\
+        Memory Tokens & \ding{51} Unfrozen & \ding{51} Unfrozen & \ding{51} Unfrozen & \textcolor{gray}{\ding{55} Frozen} \\
+        Linear Projector & \ding{51} Unfrozen & \ding{51} Unfrozen & \ding{51} Unfrozen & \textcolor{gray}{\ding{55} Frozen} \\
+        Global Decoder (LLM) & \textcolor{gray}{\ding{55} Frozen} & \ding{51} Unfrozen & \ding{51} Unfrozen & \ding{51} Unfrozen \\
+        \midrule
+        \multicolumn{5}{l}{\textit{Optimization Hyper-parameters}} \\
+        LR (LLM \& Projector \& Memory Token) & $1 \times 10^{-3}$ & $1 \times 10^{-5}$ & $1 \times 10^{-5}$ & $1 \times 10^{-5}$ \\
+        LR (SVLM) & - & $2 \times 10^{-6}$ & $2 \times 10^{-6}$ & - \\
+        Learning Rate Schedule & Cosine & Cosine & Cosine & Cosine \\
+        Warmup Ratio & 3\% & 3\% & 3\% & 3\% \\
+        Global Batch Size & 128 & 256 & 128 & 64 \\
+        Epochs & 1 & 1 & 1 & 1 \\
+        \midrule
+        \multicolumn{5}{l}{\textit{Data \& Context Scaling}} \\
+        Spatial Resolution (Image) & Native & Native & Native & Native \\
+        Spatial Resolution (Video) & - & Max 512 (Long edge) & Max 512 (Long edge) & Max 512 (Long edge) \\
+        Sampling Rate (FPS) & - & 2 & 2 & 2 \\
+        Temporal Window Size & - & 4 frames & 4 frames & 4 frames \\
+        Max Sampled Frames ($f_{\max}$) & 1 (Image only) & 8 & 128 & 384 \\
+        Segment Capacity ($k_{\max}$) & 128 & 128 & 128 & 128 \\
+        LLM Max Context Length & 8192 & 8192 & 8192 & 16384 \\
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+\myparagraph{Dynamic Spatial Resolution.}
+To balance spatial fidelity with the substantial memory requirements of long temporal contexts, we adopt a dynamic resolution strategy. Static images retain their native resolution to preserve fine-grained visual details. For video samples, frames are resized such that the longest edge does not exceed 512 pixels. The original aspect ratio is preserved without square padding, preventing the SVLM from allocating tokens to redundant regions.
+
+\myparagraph{Strategic Freezing.}
+During Stage 3 (long-context SFT), we freeze the local SVLM compressor, the memory tokens, and the linear projector. Since this stage focuses on temporal extrapolation, freezing these components isolates the gradient updates to the global LLM. This allows the model to focus on learning long-range temporal dependencies up to 12K visual tokens while avoiding degradation of the learned cross-modal alignment.

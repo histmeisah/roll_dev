@@ -1,0 +1,219 @@
+# ==============================================================================
+# Sokoban Hard 8GPU base config for algorithm x replay ablation.
+# ==============================================================================
+defaults:
+  - ../../ROLL/examples/config/traj_envs@_here_
+  - ../../ROLL/examples/config/deepspeed_zero@_here_
+  - ../../ROLL/examples/config/deepspeed_zero2@_here_
+  - ../../ROLL/examples/config/deepspeed_zero2_cpuoffload@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3_cpuoffload@_here_
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+exp_name: "sokoban_hard_qwen3_8b_8gpu_base"
+seed: 42
+timestamp: ${oc.env:TRAINING_TIMESTAMP,${now:%Y%m%d_%H%M%S}}
+base_output_dir: /mnt/project_modelware_roce/zhaojian/weiyu/freshness_aware/experiments/sokoban_hard_8gpu_ablation/output
+logging_dir: ${base_output_dir}/${timestamp}/logs
+output_dir: ${base_output_dir}/${timestamp}
+render_save_dir: ${base_output_dir}/${timestamp}/render
+system_envs:
+  USE_MODELSCOPE: '1'
+
+track_with: wandb
+tracker_kwargs:
+  project: roll-sokoban-hard-8gpu-ablation
+  name: ${timestamp}_${exp_name}
+  notes: "Sokoban hard 8GPU ablation base"
+  tags: [agentic, roll, sokoban, hard, larger_sokoban, qwen3_8b, 8gpu]
+  mode: offline
+  dir: ${base_output_dir}/${timestamp}/wandb
+
+# Ablation runs focus on metrics. Disable final checkpoint export unless a
+# variant explicitly enables it.
+checkpoint_config: null
+
+num_gpus_per_node: 8
+
+max_steps: 400
+save_steps: 10000
+logging_steps: 1
+eval_steps: 10
+resume_from_checkpoint: false
+
+train_from_replay_only: false
+batch_adjust_mode: auto
+async_generation_ratio: 1
+
+rollout_batch_size: 256
+val_batch_size: 256
+sequence_length: 2048
+
+advantage_clip: 0.2
+ppo_epochs: 2
+adv_estimator: "reinforce"
+init_kl_coef: 0.0
+use_kl_loss: false
+kl_loss_coef: 0
+whiten_advantages: true
+entropy_loss_coef: 0
+max_grad_norm: 1.0
+
+pretrain: /mnt/project_modelware_roce/zhaojian/liangsirui/Model/Qwen3-8B
+reward_pretrain: ${pretrain}
+
+actor_train:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: false
+    dtype: bf16
+    model_type: ~
+  training_args:
+    learning_rate: 1.0e-6
+    weight_decay: 0
+    per_device_train_batch_size: 1
+    gradient_accumulation_steps: 64
+    warmup_steps: 10
+    lr_scheduler_type: cosine
+  data_args:
+    template: qwen3
+  strategy_args:
+    strategy_name: deepspeed_train
+    strategy_config: ${deepspeed_zero2}
+  device_mapping: list(range(0,4))
+  infer_batch_size: 1
+  use_dynamic_batching_in_train: true
+  max_tokens_per_microbatch_in_train: 32768
+  sequence_length_round_in_train: 4
+  use_dynamic_batching_in_infer: true
+  max_tokens_per_microbatch_in_infer: 32768
+  sequence_length_round_in_infer: 4
+
+actor_infer:
+  model_args:
+    disable_gradient_checkpointing: true
+    dtype: bf16
+  generating_args:
+    max_new_tokens: 128
+    top_p: 0.99
+    top_k: 100
+    num_beams: 1
+    temperature: 0.99
+    num_return_sequences: 1
+  data_args:
+    template: qwen3
+  strategy_args:
+    strategy_name: vllm
+    strategy_config:
+      gpu_memory_utilization: 0.90
+      block_size: 16
+      load_format: auto
+      max_model_len: 2048
+  device_mapping: list(range(4,8))
+
+reference:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: true
+    dtype: bf16
+    model_type: ~
+  data_args:
+    template: qwen3
+  strategy_args:
+    strategy_name: hf_infer
+    strategy_config: ~
+  device_mapping: list(range(0,4))
+  infer_batch_size: 1
+  use_dynamic_batching_in_infer: true
+  max_tokens_per_microbatch_in_infer: 32768
+  sequence_length_round_in_infer: 4
+
+action_pattern: <answer>(.*?)</answer>
+think_action_pattern: <think>(.*?)</think>\s*<answer>(.*?)</answer>
+user_prompt_no_think_format: <answer> [your answer] </answer>
+user_prompt_think_format: <think> [Your thoughts] </think> <answer> [your answer] </answer>
+
+max_tokens_per_step: 128
+max_actions_per_traj: 10
+
+reward_normalization:
+  grouping: traj_group_id
+  method: mean_std
+
+train_env_manager:
+  format_penalty: -0.15
+  max_env_num_per_worker: 32
+  num_env_groups: 64
+  group_size: 4
+  tags: [LargerSokoban]
+  num_groups_partition: [64]
+
+val_env_manager:
+  max_env_num_per_worker: 64
+  num_env_groups: 256
+  group_size: 1
+  tags: [LargerSokoban]
+  num_groups_partition: [256]
+
+custom_envs:
+  LargerSokoban:
+    env_type: sokoban
+    max_steps: ${max_actions_per_traj}
+    max_tokens_per_step: ${max_tokens_per_step}
+    user_prompt_format: ${user_prompt_no_think_format}
+    agent_system_template: "You are an agent solving a hard Sokoban puzzle. Push all boxes to target positions. Respond with exactly one of <answer>Up</answer>, <answer>Down</answer>, <answer>Left</answer>, or <answer>Right</answer>. Do not output the word Action."
+    agent_template: |
+      Current turn: {turn_idx}
+      Board state:
+      {observation}
+      Actions left: {actions_left}
+      Respond with exactly one of <answer>Up</answer>, <answer>Down</answer>, <answer>Left</answer>, or <answer>Right</answer>.
+    reward_template: "Feedback: Your previous action received reward {reward}. Revise your plan if needed."
+    env_manager_cls: roll.pipeline.agentic.env_manager.traj_env_manager.TrajEnvManager
+    use_thread_lock: true
+    env_config:
+      format_penalty: ${train_env_manager.format_penalty}
+      env_instruction: "You are solving a hard Sokoban puzzle on a larger board with multiple boxes. You are the player and need to push all boxes to targets. You can push boxes but cannot pull them. Choose exactly one action per turn: <answer>Up</answer>, <answer>Down</answer>, <answer>Left</answer>, or <answer>Right</answer>."
+      action_pattern: ${action_pattern}
+      max_steps: ${max_actions_per_traj}
+      dim_room: [10, 10]
+      num_boxes: 2
+      search_depth: 10
+
+offpolicy_monitor:
+  enabled: false
+  save_behavior_log_probs: false
+  monitor_fresh_batch: false
+  monitor_replay_batch: false
+  monitor_interval: 1
+
+trajectory_log:
+  enabled: true
+  save_ratio: 0.05
+  max_samples_per_step: 20
+  filename: trajectory_samples.jsonl
+
+replay:
+  enabled: false
+  group_level: true
+  capacity: 50000
+  min_size: ${rollout_batch_size}
+  train_steps_per_env_step: 1
+  use_rollout_batch_size: true
+  sampling_mode: "trajectory"
+  storage_mode: tokens_only
+  lazy_tokenization: false
+  eviction_strategy: "fifo"
+  priority_function: "uniform"
+  priority_exponent: 0.6
+  enable_age_decay: false
+  age_decay: 1000.0
+  kl_fresh_eta: 1.0
+  kl_fresh_log_ratio_clip: 10.0
+  importance_sampling_correction: false
+  importance_beta: 0.4
+  use_engine_logprobs: false

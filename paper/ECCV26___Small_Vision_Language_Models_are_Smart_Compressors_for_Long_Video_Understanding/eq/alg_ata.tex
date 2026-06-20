@@ -1,0 +1,33 @@
+% \begin{algorithm}[t]
+% \caption{Adaptive Token Allocation (ATA) at inference}
+% \label{alg:ata}
+% \KwIn{Segment memories $\{\mathbf{H}_i\}_{i=1}^N$, relevance scores $\{s_i\}_{i=1}^N$, budget $B_{\max}$, bounds $k_{\min},k_{\max}$}
+% \KwOut{Budgeted memories $\{\mathbf{H}_i^{\mathrm{ATA}}\}_{i=1}^N$}
+% Normalize $\{s_i\}\rightarrow\{\hat{s}_i\}$ by min-max scaling\;
+% Compute $k_i^{\mathrm{ideal}}$ via Eq.~\eqref{eq:ideal_alloc}\;
+% \eIf{$\sum_i k_i^{\mathrm{ideal}} \le B_{\max}$}{
+% $k_i \leftarrow k_i^{\mathrm{ideal}}$\;
+% }{
+% $k_i \leftarrow$ Eq.~\eqref{eq:soft_alloc} with $B_{\mathrm{base}}=N k_{\min}$\;
+% }
+% Discretize $\{k_i\}$ to integers s.t.\ $\sum_i k_i \le B_{\max}$\;
+% $\mathbf{H}_i^{\mathrm{ATA}} \leftarrow \mathbf{H}_i[1{:}k_i]$\;
+% \Return{$\{\mathbf{H}_i^{\mathrm{ATA}}\}$}\;
+% \end{algorithm}
+
+\begin{algorithm}[t]
+\caption{Adaptive Token Allocation (ATA) at inference}
+\label{alg:ata}
+\KwIn{Segment memories $\{\mathbf{H}_i\}_{i=1}^N$, relevance scores $\{s_i\}_{i=1}^N$, budget $B_{\max}$, bounds $k_{\min},k_{\max}$}
+\KwOut{Budgeted memories $\{\mathbf{H}_i^{\mathrm{ATA}}\}_{i=1}^N$}
+Normalize $\{s_i\}\rightarrow\{\hat{s}_i\}$ by min-max scaling\;
+Compute $k_i^{\mathrm{ideal}}$ via Eq.~\eqref{eq:ideal_alloc}\;
+\eIf{$\sum_i k_i^{\mathrm{ideal}} \le B_{\max}$}{
+$k_i \leftarrow k_i^{\mathrm{ideal}}$\;
+}{
+$k_i \leftarrow$ Eq.~\eqref{eq:soft_alloc} with $B_{\mathrm{base}}=N k_{\min}$\;
+}
+Discretize $\{k_i\}$ to integers s.t.\ $\sum_i k_i \le B_{\max}$\;
+$\mathbf{H}_i^{\mathrm{ATA}} \leftarrow \mathbf{H}_i[1{:}k_i], \quad \forall i \in \{1,\dots,N\}$\;
+\Return{$\{\mathbf{H}_i^{\mathrm{ATA}}\}_{i=1}^N$}\;
+\end{algorithm}

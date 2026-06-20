@@ -1,0 +1,30 @@
+% \section{Qualitative Analysis of Query-Aware Allocation}
+% \label{supp:qualitative}
+
+% To further illustrate the interpretability and adaptability of the ATA mechanism, we present qualitative visualizations in Fig.~\ref{fig:qual_demo}. These examples show how Tempo dynamically adjusts its temporal context budget according to the semantic requirements of the input query. All examples are sampled from LVBench and illustrate the outputs of \textbf{Tempo 8K}, as reported in Tab.~\ref{tab:main_table}
+
+% \begin{itemize}
+% \item \textbf{Transient Detail Retrieval (Fig.~\ref{fig:qual_demo}, Top):}
+% For tasks requiring brief, fine-grained visual evidence (\eg reading text that appears momentarily on a stage background), ATA exhibits an extremely sparse allocation pattern. Most segments are compressed into minimal temporal anchors, while a sharp allocation peak (up to $\sim$128 tokens) is concentrated on the segment where the target text (``THE CONTEST'') appears.
+% \item \textbf{Event Localization (Fig.~\ref{fig:qual_demo}, Middle):}
+% When the query asks for the location of the woman and children ``when they first appear'', Tempo demonstrates precise temporal grounding. High token capacities are assigned to the segments at the beginning and end of the video where the subjects appear on the boat, while unrelated scenes are strongly compressed. This behavior indicates that the allocation is guided by semantic relevance rather than purely visual saliency.
+% \item \textbf{Global Video Summarization (Fig.~\ref{fig:qual_demo}, Bottom):}
+% In contrast, queries requiring global understanding (e.g., identifying the overall category of the video, such as a food vlog) demand broader contextual coverage. In this case, ATA avoids extreme sparsification and instead maintains a relatively dense token allocation across the temporal sequence, ensuring that distributed thematic cues remain available for reasoning.
+% \end{itemize}
+% %
+% Overall, these qualitative examples suggest that the local SVLM functions as an effective \emph{smart compressor}. Rather than discarding frames uniformly to satisfy a budget constraint, it performs an interpretable, query-aware cross-modal distillation that prioritizes semantically relevant temporal segments.
+\section{Qualitative Analysis of Query-Aware Allocation}
+\label{supp:qualitative}
+
+To further illustrate the interpretability and adaptability of the ATA mechanism, we present qualitative visualizations in Fig.~\ref{fig:qual_demo}. These examples show how Tempo dynamically adjusts its temporal context budget according to the semantic requirements of the input query. All examples are sampled from LVBench and illustrate the outputs of \textbf{Tempo 8K}, as reported in Tab.~\ref{tab:main_table}.
+
+\begin{itemize}
+\item \textbf{Precise Action Retrieval (Fig.~\ref{fig:qual_demo}, Top):}
+For localized tasks requiring specific visual evidence (\eg, identifying what people with yellow ropes are doing), ATA exhibits an extremely sparse allocation pattern. Most irrelevant background segments (\eg, unrelated food preparation) are aggressively compressed into minimal temporal anchors. Conversely, a sharp allocation peak (approaching the maximum budget) is concentrated exactly on the brief segment where the target action (lassoing the yak) occurs.
+\item \textbf{Targeted Object Grounding (Fig.~\ref{fig:qual_demo}, Middle):}
+When queried about a specific object (\eg, the capacity of a cooking machine), Tempo actively searches for semantically aligned visual cues. High token capacities are dynamically assigned to segments featuring mechanical apparatuses and cooking molds, while manual food preparation scenes are strongly suppressed. Interestingly, even if the localized object visually deviates slightly from a standard Taiyaki maker, this behavior confirms that the allocation is guided by the semantic intersection of the query (``machine'', ``cook'') rather than simple low-level visual saliency.
+\item \textbf{Global Video Summarization (Fig.~\ref{fig:qual_demo}, Bottom):}
+In contrast, queries requiring holistic understanding (\eg, identifying the overall category of a vlog) demand broader contextual coverage. In this case, ATA avoids extreme sparsification and instead maintains a relatively dense, fluctuating token allocation across the entire temporal sequence, ensuring that distributed thematic cues remain available for reasoning.
+\end{itemize}
+%
+Overall, these qualitative examples suggest that the local SVLM functions as an effective \emph{smart compressor}. Rather than discarding segments uniformly to satisfy a budget constraint, it performs an interpretable, query-aware cross-modal distillation that prioritizes semantically relevant temporal segments.

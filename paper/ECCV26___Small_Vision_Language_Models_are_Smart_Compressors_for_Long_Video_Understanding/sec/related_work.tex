@@ -1,0 +1,34 @@
+\section{Related Work}
+\label{sec:related_work}
+
+\subsection{Multimodal Large Language Models for Videos}
+\label{sec:related_work:MLLMs}
+
+The rapid evolution of MLLMs has established a dominant paradigm: aligning pre-trained visual encoders with powerful LLMs. Recent state-of-the-art models, such as VideoChat2~\cite{li2025videochat}, VILA~\cite{lin2024vila}, LLaVA-OneVision~\cite{li2024llava}, VITA-1.5~\cite{fu2025vita}, Kimi-VL~\cite{team2025kimi}, InternVL3.5~\cite{wang2025internvl3}, Molmo2~\cite{clark2026molmo2}, and the Qwen-VL series~\cite{bai2025qwen3},
+%
+demonstrate exceptional capability in short video understanding. They typically map sampled video frames directly into the LLM's context window. While effective for short-horizon tasks, extending this dense representation to hour-long videos results in a linear explosion of visual tokens. This quickly overwhelms the maximum context length of the LLM, leading to prohibitive computational costs and exacerbating the \emph{lost-in-the-middle} phenomenon~\cite{liu2024lost}, where models fail to retrieve pivotal evidence buried in extensive multimodal contexts.
+
+\subsection{Context Extension and Token Reduction}
+\label{sec:related_work:reduction}
+
+To comprehend extended temporal horizons, recent efforts generally bifurcate into two directions. The first direction focuses on context extension via algorithmic extrapolation, architectural innovations, or system-level parallelization to natively support massive token sequences.
+%
+For instance, LongVA~\cite{zhang2024long} extrapolates the context window to comprehend extensive visual tokens, LongVILA~\cite{chen2024longvila} introduces sequence parallelism for long-context training, and LongLLaVA~\cite{wang2024longllava} employs a hybrid Mamba-Transformer architecture to mitigate memory constraints.
+%
+While these approaches successfully preserve visual fidelity and push the context boundaries, they strictly rely on processing dense visual streams. Consequently, ingesting hundreds of thousands of visual tokens per video still incurs exorbitant memory footprints and computational overhead, rendering them highly resource-intensive for routine inference.
+%
+The second, more prevalent direction relies on query-agnostic token reduction. Drawing inspiration from image-level token pruning and merging techniques like FastV~\cite{chen2024image} and ToMe~\cite{bolya2022token}, video MLLMs typically employ spatiotemporal pooling or fixed-rate sparse sampling~\cite{maaz2024video,li2025videochat,jin2024chat,li2024videochat,jiang2025storm}.
+%
+For instance, VideoChat-Flash~\cite{li2024videochat} leverages visual redundancy to hierarchically compress tokens, while Storm~\cite{jiang2025storm} applies temporal and spatial pooling to fit tight token budgets.
+%
+% However, because these heuristics operate strictly on visual redundancy and are completely agnostic to the user's textual query, they risk blurring semantic boundaries and discarding transient, fine-grained events that may be critical to the downstream question.
+However, because these heuristics are completely agnostic to the user's textual query, they risk blurring semantic boundaries and discarding transient, fine-grained segments that may be critical to the downstream question.
+
+\subsection{Hierarchical and Query-Aware Video Architectures}
+\label{sec:related_work:query_aware}
+%
+To overcome uniform processing limits, models like SLOWFAST-LLAVA, LLaVA-Video$_{slowfast}$, and Keye-VL-1.5 deploy dual pathways to balance spatial and temporal resolutions~\cite{feichtenhofer2019slowfast,xu2024slowfast,zhang2024llava,yang2025kwai}. However, whether utilizing static sampling or dynamic inter-frame similarity, their resource allocation remains purely vision-driven and fundamentally detached from the user's textual intent.
+%
+Recent works have begun to explore query-aware processing~\cite{li2024llama,islam2025bimba,shen2024longvu}. BIMBA~\cite{islam2025bimba} introduces an optional query-conditioned token selection mechanism. LongVU~\cite{shen2024longvu} leverages cross-modal attention for selective spatial compression, yet still depends on disjoint auxiliary modules that decouple the routing mechanism from the end-to-end multimodal decoding process.
+%
+Tempo fundamentally advances this trajectory by natively employing an SVLM as an active, query-conditioned temporal compressor in a single forward pass. Furthermore, our ATA mechanism exploits the SVLM's inherent zero-shot relevance prior to dynamically dictate the video's \emph{rhythm}. This preserves dense, high-fidelity tokens for critical segments while compressing irrelevant backgrounds into minimal temporal anchors, achieving causal-preserving sequence assembly with zero routing overhead.

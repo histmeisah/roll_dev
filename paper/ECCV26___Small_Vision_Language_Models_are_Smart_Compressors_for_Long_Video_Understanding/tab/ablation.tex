@@ -1,0 +1,52 @@
+\begin{table}[t]
+    \centering
+    \caption{\textbf{Ablation studies on Tempo's core components.} We decompose our framework across five dimensions: (A) progressive training curriculum, (B) segment-level budget allocation, (C) intra-segment token reduction scheme, (D) relevance scoring source, and (E) temporal continuity. Unless otherwise specified, all variants process videos uniformly sampled at 2 FPS up to a maximum of 1024 frames, strictly bounded by an 8K visual token budget for fair comparison. The default Tempo configuration is highlighted in {\setlength{\fboxsep}{1pt}\colorbox{gray!10}{\textbf{gray}}}. LongVB denotes LongVideoBench.}
+    \label{tab:ablation_main}
+    \setlength{\tabcolsep}{9pt}
+    \resizebox{\linewidth}{!}{
+    \begin{tabular}{l c c c c c}
+        \toprule
+        \multirow{2}{*}{\raisebox{-1.5ex}{\textbf{Ablation Setting}}} & \textbf{LongVB} & \textbf{MLVU} & \multicolumn{2}{c}{\textbf{Video-MME (w/o sub.)}} & \textbf{LVBench} \\
+        \cmidrule(lr){4-5}
+        & (473s) & (651s) & \begin{tabular}{@{}c@{}}\textbf{Overall} \\ (1010s)\end{tabular} & \begin{tabular}{@{}c@{}}\textbf{Long} \\ (2386s)\end{tabular} & (4101s) \\
+        \midrule
+        
+        \multicolumn{6}{l}{\textit{A. Progressive Training Curriculum}} \\
+        w/o Stage 3 - Long-Context SFT (16K Budget)        & 61.4 & 67.2 & 66.1 & 56.3 & 47.3 \\
+        w/o Adaptive Token Allocation (16K Budget)         & 62.8 & 73.5 & 67.0 & 56.2 & 51.1 \\
+        \rowcolor{gray!10} Tempo Default (8K Budget)       & \textbf{65.1} & \textbf{75.2} & \textbf{67.7} & \textbf{57.0} & \textbf{52.3} \\
+        \midrule
+        
+        \multicolumn{6}{l}{\textit{B. Segment-Level Budget Allocation}} \\
+        Uniform Subsampling (Equal tokens per segment)      & 61.9 & 74.0 & 66.3 & 55.2 & 49.9 \\
+        Random Drop (Uniform random segment selection)      & 59.3 & 70.9 & 63.6 & 55.2 & 49.8 \\
+        Adversarial Routing (Keep lowest-scoring segments)  & 50.7 & 59.3 & 52.4 & 47.8 & 36.9 \\ 
+        Hard Top-K Routing (Keep highest-scoring segments)  & 63.5 & 73.9 & 66.7 & 56.2 & 52.7 \\
+        \rowcolor{gray!10} ATA (Adaptive token allocation, Alg.~\ref{alg:ata}) & \textbf{65.1} & \textbf{75.2} & \textbf{67.7} & \textbf{57.0} & \textbf{52.3} \\
+        \midrule
+
+        \multicolumn{6}{l}{\textit{C. Intra-Segment Token Reduction Scheme}} \\
+        Uniform Tail Truncation (Fixed 64 tokens)              & 59.5 & 71.6 & 64.1 & 54.8 & 41.8 \\
+        Uniform Head Truncation (Fixed 64 tokens)              & 63.2 & 73.4 & 66.9 & 56.2 & 51.5 \\ 
+        Token Merging (Merge visual features to $k_i$ tokens)  & 63.6 & 74.9 & 66.3 & 55.4 & 53.0 \\
+        Dynamic Tail Truncation (Keep last $k_i$ tokens)       & 61.9 & 73.4 & 64.8 & 54.2 & 50.5 \\
+        \rowcolor{gray!10}Dynamic Head Truncation (Keep first $k_i$ tokens) & \textbf{65.1} & \textbf{75.2} & \textbf{67.7} & \textbf{57.0} & \textbf{52.3} \\
+        \midrule
+        
+        \multicolumn{6}{l}{\textit{D. Relevance Scoring Source \& Zero-Shot Prior}} \\
+        Base Model Prior (Standard prompt)                              & 64.6 & 75.1 & 67.2 & 56.1 & 52.6 \\
+        Base Model Prior (Explicit routing prompt)                      & 65.7 & 76.3 & 67.6 & 57.3 & 52.7 \\
+        External Dense Retriever (Qwen3-VL Reranker) & 64.3 & 75.4 & 67.2 & 57.0 & 51.8 \\
+        Tempo SVLM Prior (Standard prompt)                               & 64.1 & 75.4 & 67.2 & 57.0 & 53.4 \\
+        \rowcolor{gray!10} Tempo SVLM Prior (Explicit routing prompt)    & \textbf{65.1} & \textbf{75.2} & \textbf{67.7} & \textbf{57.0} & \textbf{52.3} \\
+        \midrule
+
+        \multicolumn{6}{l}{\textit{E. Temporal Continuity (Minimum Token Guarantee)}} \\
+        Hard Pruning (0 tokens for irrelevant segments)            & 63.9 & 74.8 & 67.4 & 56.3 & 52.3 \\
+        \rowcolor{gray!10} Minimal Temporal Anchors ($k_{\min}=4$) & \textbf{65.1} & \textbf{75.2} & \textbf{67.7} & \textbf{57.0} & \textbf{52.3} \\
+        
+        \bottomrule
+    \end{tabular}
+    }
+    \vspace{-1.0em}
+\end{table}

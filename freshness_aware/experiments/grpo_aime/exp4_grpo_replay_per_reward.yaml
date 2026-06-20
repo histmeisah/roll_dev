@@ -1,0 +1,247 @@
+# ==============================================================================
+# EXP 4: GRPO + GroupReplayBuffer reward PER (gradient-matched vs exp2)
+# ==============================================================================
+# Purpose: Prioritized experience replay — prioritize high-reward groups
+#          Gradient updates: 1x on-policy + 1x replay (matches exp2's ppo_epochs=2)
+#          Isolation: exp3 vs exp4 shows incremental value of priority sampling
+# Algorithm: GRPO (group_size=4), ppo_epochs=1, train_steps_per_env_step=1
+# Replay: GroupReplayBuffer, reward priority (alpha=0.6) + IS correction (beta=0.4)
+# Steps: 400
+# Hardware: 8x H100 (GPU 0-3: train+ref, GPU 4-7: vLLM infer)
+# ==============================================================================
+defaults:
+  - ../../ROLL/examples/config/traj_envs@_here_
+  - ../../ROLL/examples/config/deepspeed_zero@_here_
+  - ../../ROLL/examples/config/deepspeed_zero2@_here_
+  - ../../ROLL/examples/config/deepspeed_zero2_cpuoffload@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3_cpuoffload@_here_
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+exp_name: "exp4_grpo_replay_per_reward"
+seed: 42
+timestamp: ${oc.env:TRAINING_TIMESTAMP,${now:%Y%m%d_%H%M%S}}
+base_output_dir: /mnt/data/u/maw0a/python_project/freshness_aware/experiments/grpo_aime/output
+logging_dir: ${base_output_dir}/${timestamp}/logs
+output_dir: ${base_output_dir}/${timestamp}
+render_save_dir: ${base_output_dir}/${timestamp}/render
+system_envs:
+  USE_MODELSCOPE: '1'
+
+track_with: wandb
+tracker_kwargs:
+  project: roll-grpo-replay-aime
+  name: ${timestamp}_${exp_name}
+  notes: "EXP4: GRPO + GroupReplayBuffer reward PER (alpha=0.6, beta=0.4), 400 steps, 8xH100"
+  tags: [agentic, roll, math, aime, grpo, replay, per, reward_priority, group_level, 8xH100]
+  mode: offline
+  dir: ${base_output_dir}/${timestamp}/wandb
+
+checkpoint_config:
+  type: file_system
+  output_dir: ${base_output_dir}/${timestamp}/models/${exp_name}
+
+# =============================================================================
+# TRAINING CONFIGURATION
+# =============================================================================
+num_gpus_per_node: 8
+
+max_steps: 400
+save_steps: 10000
+logging_steps: 1
+eval_steps: 10
+resume_from_checkpoint: false
+
+train_from_replay_only: false
+batch_adjust_mode: auto
+async_generation_ratio: 1
+
+rollout_batch_size: 512
+val_batch_size: 60
+sequence_length: 4096
+
+# ===================== GRPO CORE PARAMETERS =====================
+advantage_clip: 0.2
+ppo_epochs: 1
+adv_estimator: "grpo"
+init_kl_coef: 0.0
+use_kl_loss: false
+kl_loss_coef: 0
+whiten_advantages: true
+entropy_loss_coef: 0
+max_grad_norm: 1.0
+
+# =============================================================================
+# MODEL CONFIGURATION
+# =============================================================================
+pretrain: /mnt/data/u/maw0a/models/Qwen2.5-7B-Instruct
+reward_pretrain: ${pretrain}
+
+actor_train:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: false
+    dtype: bf16
+    model_type: ~
+  training_args:
+    learning_rate: 1.0e-6
+    weight_decay: 0
+    per_device_train_batch_size: 2
+    gradient_accumulation_steps: 32
+    warmup_steps: 10
+    lr_scheduler_type: cosine
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: deepspeed_train
+    strategy_config: ${deepspeed_zero2}
+  device_mapping: list(range(0,4))
+  infer_batch_size: 4
+  use_dynamic_batching_in_train: true
+  max_tokens_per_microbatch_in_train: 32768
+  sequence_length_round_in_train: 4
+  use_dynamic_batching_in_infer: true
+  max_tokens_per_microbatch_in_infer: 32768
+  sequence_length_round_in_infer: 4
+
+actor_infer:
+  model_args:
+    disable_gradient_checkpointing: true
+    dtype: bf16
+  generating_args:
+    max_new_tokens: 512
+    top_p: 0.99
+    top_k: 100
+    num_beams: 1
+    temperature: 0.99
+    num_return_sequences: 1
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: vllm
+    strategy_config:
+      gpu_memory_utilization: 0.92
+      block_size: 16
+      load_format: auto
+  device_mapping: list(range(4,8))
+
+reference:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: true
+    dtype: bf16
+    model_type: ~
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: hf_infer
+    strategy_config: ~
+  device_mapping: list(range(0,4))
+  infer_batch_size: 4
+  use_dynamic_batching_in_infer: true
+  max_tokens_per_microbatch_in_infer: 32768
+  sequence_length_round_in_infer: 4
+
+# =============================================================================
+# ENVIRONMENT CONFIGURATION - AIME (GRPO group_size=4)
+# =============================================================================
+action_pattern: '\\boxed\{(.*?)\}'
+think_action_pattern: '<think>(.*?)</think>\s*\\boxed\{(.*?)\}'
+user_prompt_no_think_format: '\boxed{ [your answer] }'
+user_prompt_think_format: '<think> [Your thoughts] </think> \boxed{ [your answer] }'
+
+max_tokens_per_step: 512
+max_actions_per_traj: 3
+
+reward_normalization:
+  grouping: traj_group_id
+  method: mean_std
+
+train_env_manager:
+  format_penalty: 0.0
+  max_env_num_per_worker: 32
+  num_env_groups: 128
+  group_size: 4
+  tags: [AIME]
+  num_groups_partition: [128]
+  max_traj_per_env: 2
+
+val_env_manager:
+  max_env_num_per_worker: 64
+  num_env_groups: 60
+  group_size: 1
+  tags: [AIME]
+  num_groups_partition: [60]
+
+custom_envs:
+  AIME:
+    env_type: "roll_math"
+    max_steps: ${max_actions_per_traj}
+    max_tokens_per_step: ${max_tokens_per_step}
+    user_prompt_format: ${user_prompt_no_think_format}
+    agent_system_template: |
+      You are a math competition solver. Solve the given problem step by step.
+      AIME answers are always integers from 000 to 999.
+      Wrap your final answer as \boxed{your_integer_answer}.
+    agent_template: |
+      Problem:
+      {observation}
+      You have {actions_left} attempts remaining.
+      Think carefully, then put only your final integer answer in \boxed{{}} within {max_response_length} tokens.
+    reward_template: "Your previous answer was incorrect (reward: {reward}). Try again.\n"
+    env_manager_cls: roll.pipeline.agentic.env_manager.traj_env_manager.TrajEnvManager
+    use_thread_lock: true
+    env_config:
+      dataset_name: /mnt/data/u/maw0a/python_project/freshness_aware/datasets/math_benchmarks/aime_train.parquet
+      split: "train"
+
+# =============================================================================
+# OFF-POLICY MONITORING
+# =============================================================================
+offpolicy_monitor:
+  enabled: true
+  save_behavior_log_probs: true
+  monitor_fresh_batch: true
+  monitor_replay_batch: true
+  monitor_interval: 1
+
+# =============================================================================
+# TRAJECTORY LOGGING
+# =============================================================================
+trajectory_log:
+  enabled: true
+  save_ratio: 0.1
+  max_samples_per_step: 20
+  filename: trajectory_samples.jsonl
+
+# =============================================================================
+# REPLAY BUFFER - Group-level PER with reward priority
+# =============================================================================
+replay:
+  enabled: true
+  group_level: true              # MUST be true for GRPO group structure
+  capacity: 2000                 # 2000 groups × 4 = 8000 trajectories
+  min_size: 128                  # Warmup: need 128 groups before replay starts
+  train_steps_per_env_step: 1    # 1 extra replay training step per rollout
+  use_rollout_batch_size: true
+  sampling_mode: "trajectory"
+  storage_mode: tokens_only
+  lazy_tokenization: false
+  eviction_strategy: "fifo"
+
+  # Reward-based Prioritized Experience Replay (PER)
+  # Groups with higher mean episode_score get sampled more frequently
+  sample_method: "uniform"       # sample_method ignored when priority_function != lifo/fifo/uniform
+  priority_function: "reward"
+  priority_exponent: 0.6         # alpha=0.6 (standard PER)
+
+  enable_age_decay: false
+  age_decay: 1000.0
+
+  # Importance sampling correction to compensate for non-uniform sampling bias
+  importance_sampling_correction: true
+  importance_beta: 0.4           # beta=0.4 (standard PER anneal start)

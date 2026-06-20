@@ -1,0 +1,15 @@
+defaults:
+  - sokoban_hard_qwen3_8b_8gpu_base
+  - _self_
+
+exp_name: "sokoban_hard_reinforce_baseline_qwen3_8b_8gpu"
+
+adv_estimator: "reinforce"
+ppo_epochs: 2
+
+tracker_kwargs:
+  notes: "Compute-matched Reinforce++ baseline: no replay, ppo_epochs=2"
+  tags: [agentic, roll, sokoban, hard, larger_sokoban, reinforce, baseline, no_replay, ppo2, qwen3_8b, 8gpu]
+
+replay:
+  enabled: false

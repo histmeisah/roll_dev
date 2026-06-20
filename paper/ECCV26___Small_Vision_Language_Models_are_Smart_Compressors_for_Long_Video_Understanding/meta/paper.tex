@@ -1,0 +1,97 @@
+\documentclass[]{fairmeta}
+% Option "twocolumn" available, but please prioritize single-column
+
+\title{Small Vision-Language Models are Smart Compressors for Long Video Understanding}
+
+\author[1,2,*,\dagger]{Junjie Fei}
+\author[1]{Jun Chen}
+\author[1]{Zechun Liu}
+\author[1]{Yunyang Xiong}
+\author[1]{Chong Zhou}
+\author[1]{Wei Wen}
+\author[1]{Junlin Han}
+\author[1,2]{\\Mingchen Zhuge}
+\author[1]{Saksham Suri}
+\author[1]{Qi Qian}
+\author[1,2]{Shuming Liu}
+\author[1]{Lemeng Wu}
+\author[1]{Raghuraman Krishnamoorthi}
+\author[1,\dagger]{Vikas Chandra}
+\author[2,\dagger]{Mohamed Elhoseiny}
+\author[1,\dagger]{Chenchen Zhu}
+
+\affiliation[1]{Meta AI}
+\affiliation[2]{King Abdullah University of Science and Technology (KAUST)}
+% \affiliation[3]{University of Oxford}
+
+\contribution[*]{Work done at Meta}
+\contribution[\dagger]{Project lead}
+
+\abstract{\input{sec/abs_meta}}
+
+\date{\today}
+\correspondence{\email{junjiefei@outlook.com}, \email{chenchenz@meta.com}}
+
+% You can add additional metadata fields as follows 
+\metadata[Code]{\url{https://github.com/FeiElysia/Tempo}}
+\metadata[Project \& Demo]{\url{https://FeiElysia.github.io/tempo-page/}}
+
+\usepackage{eccvabbrv}
+\newcommand{\myparagraph}[1]{\paragraph{\textbf{#1}}}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage{array}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{pifont}
+\usepackage{fontawesome5}
+
+\begin{document}
+
+\maketitle
+
+% ---------------------------------------------------------------
+\input{fig/teaser}
+\input{sec/intro}
+\input{sec/related_work}
+\input{sec/method}
+\input{sec/exp}
+\input{sec/conclusion}
+\input{sec/roadmap}
+
+\section*{Acknowledgements}
+This work was conducted during a research internship at Meta. Junjie Fei, Mingchen Zhuge, Shuming Liu, and Mohamed Elhoseiny were supported by funding from the King Abdullah University of Science and Technology (KAUST) Center of Excellence for Generative AI.
+
+% ---------------------------------------------------------------
+
+% \section{References and citations}
+
+% Take a look at~\cref{table:demo}, appearing on~\cref{section:intro}.
+% %
+% Some citation of previous work~\citep{goodman}.
+
+\clearpage
+\newpage
+\bibliographystyle{assets/plainnat}
+\bibliography{paper}
+
+\clearpage
+\newpage
+\beginappendix
+
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\renewcommand{\thefigure}{\Alph{figure}}
+\renewcommand{\thetable}{\Alph{table}}
+
+\input{supp/allocation}
+\input{supp/qualitative}
+\input{supp/fig/demo}
+\input{supp/hyperparameters}
+\input{supp/datasets}
+\input{supp/prompt}
+\input{supp/token_calc}
+
+\end{document}

@@ -1,0 +1,56 @@
+\section{Introduction}
+\label{sec:intro}
+
+The advancement of Multimodal Large Language Models (MLLMs) has significantly transformed visual understanding, empowering systems to perform complex semantic analysis over images and short video clips~\cite{liu2023visual,liu2024improved,zhu2023minigpt,li2024llava,bai2025qwen3,li2025videochat,zhang2024llava,zhang2023video}. However, scaling these capabilities to hour-long videos remains challenging.
+%
+The core difficulty lies in the structural mismatch between the massive, continuous visual stream of long videos and the rigidly bounded context windows of downstream LLMs.
+%
+As temporal duration expands, raw visual tokens quickly overwhelm the input capacity, severely diluting attention mechanisms and causing models to fail at retrieving sparse evidence buried within extensive contexts~\cite{liu2024lost}.
+
+To fit long video understanding into limited contexts, existing methods typically force one of two compromises.
+%
+A common approach is sparse frame sampling~\cite{xu2024pllava,li2025videochat,lin2024video}, which reduces compute but inevitably risks skipping the transient yet decisive moments required to answer a specific query.
+%
+Alternatively, methods retain more frames but apply query-agnostic compression, such as uniform spatiotemporal pooling~\cite{maaz2024video,jiang2025storm} or token merging~\cite{bolya2022token,li2024videochat,jin2024chat}.
+%
+By compressing without knowing \emph{what the user will ask}, these heuristics often blur fine-grained evidence in query-critical segments while wasting representational bandwidth on irrelevant backgrounds.
+%
+In essence, most existing pipelines reduce visual evidence before interacting with the language model, preventing the dynamic allocation of bandwidth to query-critical segments.
+%
+Even pioneering query-aware approaches (\eg, LongVU~\cite{shen2024longvu}) rely on disjoint auxiliary feature-matching modules, thereby decoupling the routing mechanism from the end-to-end multimodal pipeline.
+
+We introduce \textbf{Tempo}, an efficient query-aware framework for long video understanding that natively learns to compress videos for downstream text generation tasks.
+%
+As its name suggests, Tempo acts as an intelligent temporal compressor that dynamically distributes the \emph{rhythm} of the video: it allocates high token bandwidth to semantic beats relevant to the query while swiftly fast-forwarding through redundant contexts.
+%
+Rather than treating visual compression as a purely visual, query-agnostic operation~\cite{jiang2025storm,li2024videochat}, Tempo casts this reduction as an early cross-modal semantic distillation process.
+%
+Concretely, Tempo leverages a Small Vision-Language Model (SVLM) as a local compressor, seamlessly bridging it with an LLM for global understanding and response generation.
+%
+By prepending the user query to the SVLM input, Tempo performs a preliminary cross-modal distillation pass that produces compact video memory tokens aligned with the user's intent and is trained end-to-end with standard auto-regressive objectives.
+
+
+A practical challenge is enforcing a strict token budget at inference time (\eg, representing a 1024-frame video under an 8K visual token budget) without sacrificing either fine-grained evidence or global causal structure.
+%
+To this end, we propose \textbf{Adaptive Token Allocation (ATA)}, a training-free inference strategy guided by two key empirical properties of the Tempo architecture.
+%
+(i) \emph{Zero-shot relevance prior and temporal anchors.}
+%
+Inheriting from the base model's extensive multimodal pre-training, the local compressor exhibits a zero-shot ability to estimate query-video relevance without auxiliary supervision.
+%
+ATA exploits this prior to allocate budgets segment-wise, enabling an aggressive dynamic compression range (0.5--16 tokens per frame). Crucially, instead of hard pruning, which breaks causality, ATA preserves dense representational bandwidth for relevant segments while compressing redundant contexts into minimal temporal anchors (\ie, 4 tokens) to maintain the global storyline.
+%
+(ii) \emph{Semantic front-loading driven by causal attention.}
+%
+Our ablations empirically reveal that under the SVLM's causal attention, salient visual semantics natively concentrate into the earliest video memory tokens.
+%
+Consequently, a simple head truncation effectively isolates high-value evidence, avoiding lossy spatial blurring with zero overhead.
+
+In summary, our contributions are:
+\vspace{-0.5em}
+\begin{itemize}
+    \item \textbf{Tempo:} an end-to-end, query-aware compression framework for long video understanding. It directly addresses the context window bottleneck by unifying an SVLM-based local compressor and an LLM-based global decoder, performing query-conditioned cross-modal distillation in a single forward pass.
+    \item \textbf{ATA:} a training-free, budget-aware inference strategy leveraging the local compressor's inherent zero-shot relevance prior and semantic front-loading. ATA dynamically dictates the optimal token allocation, preserving fine-grained details for query-critical moments while compressing redundancies into minimal temporal anchors to maintain global causal structure.   
+    \item \textbf{Scaling Behaviors:} an empirical analysis revealing that optimal resource allocation varies with the task and video duration. While a 4K visual token budget acts as a \emph{sweet spot} for standard long video tasks (\eg, Video-MME Long, \textbf{30--60 mins}), restrictive budgets ultimately limit performance on extreme-long videos (\eg, LVBench, \textbf{$>$1 hour}). Scaling to larger capacities unlocks new performance peaks. Notably, in practice we observe that Tempo allocates tokens largely based on semantic necessity, often compressing hour-long videos far below the available token budget.
+    \item \textbf{Leading Performances:} despite being a compact 6B model, Tempo sets a new state-of-the-art across long video benchmarks. On challenging LVBench, it scores \textbf{52.3} under a 8K budget, outperforming proprietary baseline (\eg, GPT-4o, Gemini 1.5 Pro) and open-source counterparts (\eg, VideoChat-Flash). Scaling to 2048 frames with a 12K budget further pushes performance to \textbf{53.7}, demonstrating robust hour-long video understanding of our proposed Tempo.
+\end{itemize}

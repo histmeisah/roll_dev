@@ -1,0 +1,26 @@
+
+\begin{table*}[t]
+    \centering
+    \begin{NiceTabular}{lcccccc}
+    \CodeBefore
+    \rectanglecolor{metabg}{3-4}{4-4}
+    \rectanglecolor{metabg}{5-6}{6-6}
+    \Body
+    \toprule
+                               &   & \multicolumn{3}{c}{Vision tasks} & \multicolumn{2}{c}{Language tasks}\\
+    \cmidrule{3-7}
+                               &               & DatasetA             & DatasetB             & DatasetC             & DatasetD             & DatasetE \\
+    \midrule
+    \multirow{2}{*}{BaselineA} & $\lambda = 0$ & $\nm{0.84 \pm 0.22}$ & $\bm{0.83 \pm 0.14}$ & $\nm{0.84 \pm 0.24}$ & $\nm{0.86 \pm 0.16}$ & $\nm{0.81 \pm 0.18}$\\
+                               & $\lambda = 1$ & $\nm{0.83 \pm 0.26}$ & $\nm{0.82 \pm 0.20}$ & $\nm{0.88 \pm 0.23}$ & $\nm{0.87 \pm 0.12}$ & $\nm{0.84 \pm 0.20}$\\
+    \multirow{2}{*}{BaselineB} & $\lambda = 0$ & $\nm{0.84 \pm 0.15}$ & $\nm{0.86 \pm 0.16}$ & $\nm{0.89 \pm 0.11}$ & $\nm{0.84 \pm 0.17}$ & $\nm{0.87 \pm 0.30}$\\
+                               & $\lambda = 1$ & $\bm{0.90 \pm 0.15}$ & $\nm{0.81 \pm 0.22}$ & $\nm{0.88 \pm 0.18}$ & $\nm{0.83 \pm 0.23}$ & $\nm{0.80 \pm 0.27}$\\
+    \midrule 
+    \textbf{Our method}        &               & $\nm{0.86 \pm 0.19}$ & $\nm{0.81 \pm 0.18}$ & $\bm{0.95 \pm 0.16}$ & $\bm{0.91 \pm 0.13}$ & $\bm{0.92 \pm 0.30}$\\
+    \bottomrule
+    \end{NiceTabular}
+    \caption{A nice table does not require vertical separators and uses bolding---here implemented by the \texttt{\textbackslash{}bm\{\}} and \texttt{\textbackslash{}nm\{\}} commands---sparingly.
+    %
+    Using the \texttt{NiceTabular} environment from the \texttt{nicematrix} package to highlight the background of some cells easily, using the official \texttt{metabg} color.}
+    \label{table:demo}
+\end{table*}

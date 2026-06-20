@@ -1,0 +1,63 @@
+\vspace{-0.3em}
+\noindent{\textcolor{MyOrange}{\Large\textbf{------------\quad}}}
+\textcolor{MyOrange}{\textbf{Reviewer bfPP}} 
+\textcolor{MyOrange}{\Large\textbf{\quad---------------}}
+% ----------------------------------------------------
+%                      2/5
+% ----------------------------------------------------
+% Justification:
+% 1. The main algorithmic novelty is not yet sufficiently convincing. The motivation and related-work discussion miss highly relevant recent token compression methods, especially DyToK, and several core components of Tempo appear conceptually close to that line of work. The paper also does not provide a direct comparison or a clear explanation of how Tempo differs from these prior methods.
+% 2. In addition, the efficiency claim is not fully supported by end-to-end profiling that includes the 2B SVLM compressor, and the textual timestamp component is not isolated by ablation. These issues affect the central claims about novelty, practical efficiency, and technical attribution, rather than being minor presentation problems.
+% ----------------------------------------------------
+% Suggestions For Rebuttal:
+% N/A
+% ----------------------------------------------------
+% Summary for Reviewer's Expect:
+% 1. Novelty, motivation, related-work discussion
+% 2. Latency
+% 3. Textual Timestamp
+% ----------------------------------------------------
+
+\vspace{-0.2em}
+\noindent{\textcolor{MyOrange}{\textbf{Q1: Motivation.}}} 
+% ----------------------------------------------------
+% W1:
+% Unconvincing Motivation. The introduction states that most existing pipelines reduce visual evidence before interacting with the language model, which prevents dynamic allocation of bandwidth to query-critical segments. I find this statement too strong. Several recent methods [1-3] already perform visual token pruning or compression with signals from the LLM side, or exploit query-conditioned relevance for adaptive token allocation. The introduction mainly discusses LongVU as a pioneering query-aware method, which makes the related-work positioning feel dated. This weakens the motivation that Tempo uniquely addresses an unmet gap in existing long-video compression methods.
+% [1] https://arxiv.org/pdf/2512.06866
+% [2] https://arxiv.org/pdf/2505.21334
+% [3] https://arxiv.org/abs/2411.15024
+% ----------------------------------------------------
+Our scope targets \textit{long video understanding}. While [1-3] (to be discussed) achieve query-awareness via intra-LLM attention, this paradigm collapses at extreme lengths, as ingesting massive tokens in early LLM layer triggers severe \textbf{Attention Dilution}. Applying aggressive \textit{query-agnostic} compression upfront [2,3] regresses to the bottleneck in Fig. 1. We thus argue that query-aware compression should operate per-segment and entirely \textit{pre-LLM}.
+
+
+\vspace{-0.2em}
+\noindent{\textcolor{MyOrange}{\textbf{Q2: Novelty.}}} 
+% ----------------------------------------------------
+% W2:
+% Insufficient Distinction from DyToK. The proposed use of an SVLM to guide token budgets for the global LLM closely resembles DyToK [1], which is not cited. Specifically, Tempo’s Adaptive Token Allocation shares strong similarities with DyToK’s approach (Sec. 3.3 in [1]), using an LLM-derived relevance or keyframe prior for global budget distribution. Additionally, Tempo’s “zero-shot relevance prior” conceptually parallels DyToK’s keyframe prior. The semantic front-loading and head truncation also closely relate to the phenomena and mitigations described in DyToK, such as temporal attention outliers (Appendix B in [1]) and per-frame truncation methods (Sec. 3.3 in [1]). Thus, Tempo appears as an incremental extension towards a trained token compressor rather than presenting a clearly distinct methodology.
+%
+Tempo fundamentally diverges from DyToK's paradigm:
+%
+\textbf{1) ATA:} DyToK uses the LLM solely as a budget router, relying on a separate module for passive token pruning/merging (a lossy process generating no new semantics). Tempo introduces a \textit{generative compression} paradigm. The SVLM determines both \textit{what} and \textit{how much} to compress, dynamically generating condensed, query-aware representations for each segment.
+%
+\textbf{2) Truncation:} This generative nature dictates our Head Truncation. Driven by causal attention, the SVLM aggregates sufficient query-relevant context into the earliest memory tokens (semantic front-loading). Thus, retaining the ``head'' preserves these densely generated semantics (not outliers, validated in Ablation C), rendering later tokens droppable. Conversely, DyToK's truncation is a forced heuristic drop/merge to meet a rigid budget limit.
+%
+\textbf{3) Relevance Prior:} DyToK’s keyframe prior relies on full-sequence LLM attention. For hour-long inputs, this causes severe attention dilution, initial/final frame outliers, and OOM (DyToK OOMs at 128 frames). SVLM’s zero-shot prior is computed independently within each segment. This eliminates cross-segment interference and temporal outliers, scaling easily to 1-hour videos.
+
+\vspace{-0.2em}
+\noindent{\textcolor{MyOrange}{\textbf{Q3: Efficiency (Tab.~\ref{tab:rebuttal}).}}} 
+% ----------------------------------------------------
+% The efficiency claim is central to the paper, but the local SVLM and global LLM are both nontrivial in size. The architecture adds a 2B SVLM forward pass to a 4B global decoder. Although the global decoder receives fewer visual tokens, the additional SVLM computation may offset part of the benefit, especially since every segment must be processed by the compressor. The paper mainly reports visual tokens per frame and benchmark accuracy, but does not provide end-to-end latency or peak GPU memory measurements under the same token budget while including the compressor. Without such profiling, it is difficult to judge whether Tempo is practically more efficient than recent token pruning or compression baselines.
+% ----------------------------------------------------
+For matched frames, SVLM is faster than baselines (Lat. V) via \textit{parallel} per-segment compression and advanced attention optimizations in practice.
+
+\vspace{-0.2em}
+\noindent{\textcolor{MyOrange}{\textbf{Q4: Timestamps.}}} 
+% ----------------------------------------------------
+% The method prepends textual timestamps to each segment and claims that they stabilize long-range attribution, but I did not find an ablation that removes these timestamps or varies their granularity. This is important because the timestamps may be a meaningful source of temporal grounding for the global LLM. The temporal continuity ablation based on the minimum token guarantee does not isolate the effect of textual timestamp tags. A comparison with and without textual timestamps would make the claimed contribution of the sequence assembly much clearer.
+% ----------------------------------------------------
+Removing them in Tempo-8K drops performance: LVBench: 50.8 (-1.5), Video-MME: 66.4 (-1.3), MLVU: 74.2 (-1.0), LongVideoBench: 63.5 (-1.6).
+
+% \vspace{-0.2em}
+% \noindent\textbf{\color{MyOrange} Q4: Writing.} 
+% We thank the reviewer for the careful reading. We will correct the mentioned typos and thoroughly proofread the entire manuscript.

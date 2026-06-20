@@ -1,0 +1,272 @@
+# ==============================================================================
+# VLM SVG RECONSTRUCTION OFF-POLICY - Trajectory Level + Standard PER - 8GPU
+# ==============================================================================
+# Purpose: VLM SVG reconstruction with standard Prioritized Experience Replay
+# Hardware: 8x H100
+#   - GPU 0-3: actor_train + reference (DeepSpeed ZeRO-2)
+#   - GPU 4-7: actor_infer (vLLM)
+# Key Features:
+#   - VLTrajEnvManager for multimodal (image + text) processing
+#   - Generative task: VLM generates SVG code from target images
+#   - Reward-based priority sampling (priority = |reward|)
+#   - Importance sampling correction
+# ==============================================================================
+defaults:
+  - ../../ROLL/examples/config/traj_envs@_here_
+  - ../../ROLL/examples/config/deepspeed_zero@_here_
+  - ../../ROLL/examples/config/deepspeed_zero2@_here_
+  - ../../ROLL/examples/config/deepspeed_zero2_cpuoffload@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3_cpuoffload@_here_
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+exp_name: "vlm_svg_traj_per_8gpu"
+seed: 42
+timestamp: ${oc.env:TRAINING_TIMESTAMP,${now:%Y%m%d_%H%M%S}}
+base_output_dir: /mnt/project_modelware_roce/zhaojian/liangsirui/weiyu/projects/local_roll_dev/roll_dev/experiments/vlm_svg_reconstruction/output
+logging_dir: ${base_output_dir}/${timestamp}/logs
+output_dir: ${base_output_dir}/${timestamp}
+render_save_dir: ${base_output_dir}/${timestamp}/render
+system_envs:
+  USE_MODELSCOPE: '1'
+
+track_with: wandb
+tracker_kwargs:
+  project: roll-vlm-svg-reconstruction
+  name: ${timestamp}_${exp_name}
+  notes: "VLM Off-Policy: SVG Reconstruction, Standard PER (reward priority + IS), 8xH100"
+  tags: [agentic, roll, svg, vlm, replay, per, trajectory, generative, 8xH100]
+  mode: offline
+  dir: ${base_output_dir}/${timestamp}/wandb
+
+checkpoint_config:
+  type: file_system
+  output_dir: ${base_output_dir}/${timestamp}/models/${exp_name}
+
+# =============================================================================
+# TRAINING CONFIGURATION
+# =============================================================================
+
+num_gpus_per_node: 8
+
+max_steps: 400
+save_steps: 10000
+logging_steps: 1
+eval_steps: 10
+resume_from_checkpoint: false
+
+train_from_replay_only: false
+batch_adjust_mode: auto
+async_generation_ratio: 1
+
+rollout_batch_size: 256
+val_batch_size: 256
+sequence_length: 8192
+
+advantage_clip: 20
+ppo_epochs: 1
+adv_estimator: "reinforce"
+init_kl_coef: 0.1
+use_kl_loss: true
+kl_loss_coef: 0.05
+whiten_advantages: true
+entropy_loss_coef: 0.01
+max_grad_norm: 1.0
+
+# =============================================================================
+# MODEL CONFIGURATION - VLM
+# =============================================================================
+
+pretrain: /mnt/project_modelware_roce/zhaojian/models/pretrain/Qwen2.5-VL-3B-Instruct
+reward_pretrain: ${pretrain}
+
+actor_train:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: false
+    dtype: bf16
+    model_type: ~
+  training_args:
+    learning_rate: 1.0e-6
+    weight_decay: 0
+    per_device_train_batch_size: 1
+    gradient_accumulation_steps: 32
+    warmup_steps: 10
+    lr_scheduler_type: cosine
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: deepspeed_train
+    strategy_config: ${deepspeed_zero2}
+  device_mapping: list(range(0,4))
+  infer_batch_size: 1
+  use_dynamic_batching_in_train: true
+  max_tokens_per_microbatch_in_train: 32768
+  sequence_length_round_in_train: 4
+  use_dynamic_batching_in_infer: true
+  max_tokens_per_microbatch_in_infer: 32768
+  sequence_length_round_in_infer: 4
+
+actor_infer:
+  model_args:
+    disable_gradient_checkpointing: true
+    dtype: bf16
+  generating_args:
+    max_new_tokens: 1024
+    top_p: 0.95
+    top_k: 50
+    num_beams: 1
+    temperature: 0.8
+    num_return_sequences: 1
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: vllm
+    strategy_config:
+      gpu_memory_utilization: 0.92
+      block_size: 16
+      load_format: auto
+      limit_mm_per_prompt:
+        image: ${max_actions_per_traj}
+  device_mapping: list(range(4,8))
+
+reference:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: true
+    dtype: bf16
+    model_type: ~
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: hf_infer
+    strategy_config: ~
+  device_mapping: list(range(0,4))
+  infer_batch_size: 1
+  use_dynamic_batching_in_infer: true
+  max_tokens_per_microbatch_in_infer: 32768
+  sequence_length_round_in_infer: 4
+
+# =============================================================================
+# ENVIRONMENT CONFIGURATION - VLM SVG Reconstruction
+# =============================================================================
+
+action_pattern: <answer>(.*?)</answer>
+think_action_pattern: <think>(.*?)</think>\s*<answer>(.*?)</answer>
+user_prompt_no_think_format: <answer> [your SVG code] </answer>
+user_prompt_think_format: <think> [Your analysis] </think> <answer> [your SVG code] </answer>
+
+max_tokens_per_step: 1024
+max_actions_per_traj: 3
+
+reward_normalization:
+  grouping: traj_group_id
+  method: mean_std
+
+train_env_manager:
+  format_penalty: -0.1
+  max_env_num_per_worker: 16
+  num_env_groups: 64
+  group_size: 4
+  tags: [SVGReconstruction]
+  num_groups_partition: [64]
+  max_traj_per_env: 2
+
+val_env_manager:
+  max_env_num_per_worker: 32
+  num_env_groups: 256
+  group_size: 1
+  tags: [SVGReconstruction]
+  num_groups_partition: [256]
+
+custom_envs:
+  SVGReconstruction:
+    env_type: svg_reconstruction
+    max_tokens_per_step: ${max_tokens_per_step}
+    user_prompt_format: ${user_prompt_no_think_format}
+    env_manager_cls: roll.pipeline.agentic.env_manager.vl_traj_env_manager.VLTrajEnvManager
+
+    agent_system_template: |
+      You are an SVG reconstruction agent. You will be shown target images and must
+      write SVG code to recreate them as closely as possible.
+      The SVG should be a valid document with <svg xmlns="http://www.w3.org/2000/svg" ...> tags.
+      Use basic SVG elements: rect, circle, ellipse, line, polyline, polygon, path, text.
+      After each attempt, you will see a side-by-side comparison (target left, your result right)
+      to help you refine your output.
+      Output your SVG code as: <answer><svg ...>...</svg></answer>
+
+    pre_step_template: "Turn {turn_idx}:\nTarget image (or comparison):"
+    next_step_template: |
+      You have {actions_left} attempts left.
+      Analyze the image carefully and generate SVG code to reconstruct it.
+      Output format: <answer><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">...</svg></answer>
+      Respond within {max_response_length} tokens.
+    reward_template: "Previous attempt score: {reward}\n"
+
+    use_thread_lock: true
+
+    env_config:
+      env_instruction: |
+        You are an SVG reconstruction agent. You will be shown a target image.
+        Your goal is to write SVG code that recreates the target image as closely as possible.
+        Output your SVG code inside <answer>YOUR_SVG_CODE</answer> tags.
+        The SVG must be a valid SVG document starting with <svg and ending with </svg>.
+        After each attempt you will see a side-by-side comparison (target on the left,
+        your result on the right) so you can refine your output.
+      action_pattern: ${action_pattern}
+      max_steps: ${max_actions_per_traj}
+      dataset_name: "/mnt/project_modelware_roce/zhaojian/liangsirui/weiyu/projects/local_roll_dev/roll_dev/data/datasets_disk/starvector_svg-icons-simple"
+      dataset_split: "train"
+      image_resolution: 256
+      render_mode: "rgb_array"
+      structural_weight: 0.4
+      pixel_mse_weight: 0.3
+      ssim_weight: 0.3
+
+# =============================================================================
+# TRAJECTORY LOGGING
+# =============================================================================
+
+trajectory_log:
+  enabled: true
+  save_ratio: 0.1
+  max_samples_per_step: 20
+  filename: trajectory_samples.jsonl
+
+# =============================================================================
+# OFF-POLICY MONITORING
+# =============================================================================
+
+offpolicy_monitor:
+  enabled: true
+  save_behavior_log_probs: true
+  monitor_fresh_batch: true
+  monitor_replay_batch: true
+  monitor_interval: 1
+
+# =============================================================================
+# REPLAY BUFFER - Standard PER Configuration
+# =============================================================================
+
+replay:
+  enabled: true
+  capacity: 50000
+  min_size: ${rollout_batch_size}
+  train_steps_per_env_step: 2
+  use_rollout_batch_size: true
+  sampling_mode: "trajectory"
+  storage_mode: tokens_only
+  lazy_tokenization: false
+  eviction_strategy: "fifo"
+
+  # Standard PER: reward-based priority
+  priority_function: "reward"
+  priority_exponent: 0.6
+
+  # Importance Sampling Correction
+  importance_sampling_correction: true
+  importance_beta: 0.4

@@ -1,0 +1,25 @@
+defaults:
+  - sokoban_hard_qwen3_8b_8gpu_base
+  - _self_
+
+exp_name: "sokoban_hard_reinforce_freshper_qwen3_8b_8gpu"
+
+adv_estimator: "reinforce"
+ppo_epochs: 1
+
+tracker_kwargs:
+  notes: "Reinforce++ + KL-FreshPER: one on-policy update plus one replay update per env step"
+  tags: [agentic, roll, sokoban, hard, larger_sokoban, reinforce, replay, freshper, kl_fresh, qwen3_8b, 8gpu]
+
+offpolicy_monitor:
+  enabled: true
+  save_behavior_log_probs: true
+  monitor_fresh_batch: true
+  monitor_replay_batch: true
+  monitor_interval: 1
+
+replay:
+  enabled: true
+  priority_function: "kl_fresh"
+  enable_age_decay: true
+  use_engine_logprobs: true

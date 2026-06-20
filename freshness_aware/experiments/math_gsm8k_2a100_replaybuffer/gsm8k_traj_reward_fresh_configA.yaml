@@ -1,0 +1,241 @@
+# ==============================================================================
+# GSM8K - Trajectory Level + Reward-Fresh + Config A + Age1000
+# ==============================================================================
+# Purpose: Test reward-fresh replay buffer on GSM8K math reasoning
+# Hardware: 2x A100 40GB
+#
+# Key Settings:
+#   - Config A: advantage_clip=0.2, use_kl_loss=false
+#   - reward_fresh priority with age_decay=1000 (best on FrozenLake)
+#   - GSM8K: grade school math word problems
+#   - 3 attempts per problem
+# ==============================================================================
+defaults:
+  - ../../ROLL/examples/config/traj_envs@_here_
+  - ../../ROLL/examples/config/deepspeed_zero@_here_
+  - ../../ROLL/examples/config/deepspeed_zero2@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3@_here_
+  - ../../ROLL/examples/config/deepspeed_zero3_cpuoffload@_here_
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+exp_name: "gsm8k_traj_reward_fresh_configA"
+seed: 42
+timestamp: ${oc.env:TRAINING_TIMESTAMP,${now:%Y%m%d_%H%M%S}}
+base_output_dir: /mnt/nasdata/weiyu/roll_dev/experiments/math_gsm8k_2a100_replaybuffer/output
+logging_dir: ${base_output_dir}/${timestamp}/logs
+output_dir: ${base_output_dir}/${timestamp}
+render_save_dir: ${base_output_dir}/${timestamp}/render
+system_envs:
+  USE_MODELSCOPE: '1'
+
+track_with: wandb
+tracker_kwargs:
+  project: roll-math-2a100
+  name: ${timestamp}_${exp_name}
+  notes: "Config A + Reward-Fresh + age_decay=1000: GSM8K with replay buffer"
+  tags: [agentic, roll, math, gsm8k, replay, traj, reward_fresh, configA, 2a100]
+  mode: offline
+  dir: ${base_output_dir}/${timestamp}/wandb
+
+checkpoint_config:
+  type: file_system
+  output_dir: ${base_output_dir}/${timestamp}/models/${exp_name}
+
+# =============================================================================
+# TRAINING CONFIGURATION - Config A (Verified Working)
+# =============================================================================
+
+num_gpus_per_node: 2
+
+max_steps: 400
+save_steps: 10000
+logging_steps: 1
+eval_steps: 10
+resume_from_checkpoint: false
+
+train_from_replay_only: false
+batch_adjust_mode: auto
+async_generation_ratio: 1
+
+rollout_batch_size: 128
+val_batch_size: 128
+sequence_length: 4096
+
+# ===================== CONFIG A CORE PARAMETERS =====================
+advantage_clip: 0.2
+ppo_epochs: 1
+adv_estimator: "reinforce"
+init_kl_coef: 0.0
+use_kl_loss: false
+kl_loss_coef: 0
+whiten_advantages: true
+entropy_loss_coef: 0
+max_grad_norm: 1.0
+# ====================================================================
+
+# =============================================================================
+# MODEL CONFIGURATION
+# =============================================================================
+
+pretrain: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+reward_pretrain: /mnt/nasdata/weiyu/llm_model/qwen_models/Qwen2.5-0.5B-Instruct
+
+actor_train:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: false
+    dtype: bf16
+    model_type: ~
+  training_args:
+    learning_rate: 1.0e-6
+    weight_decay: 0
+    per_device_train_batch_size: 2
+    gradient_accumulation_steps: 64
+    warmup_steps: 10
+    lr_scheduler_type: cosine
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: deepspeed_train
+    strategy_config: ${deepspeed_zero2}
+  device_mapping: list(range(0,1))
+  infer_batch_size: 2
+
+actor_infer:
+  model_args:
+    disable_gradient_checkpointing: true
+    dtype: bf16
+  generating_args:
+    max_new_tokens: 512
+    top_p: 0.99
+    top_k: 100
+    num_beams: 1
+    temperature: 0.99
+    num_return_sequences: 1
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: vllm
+    strategy_config:
+      gpu_memory_utilization: 0.85
+      block_size: 16
+      load_format: auto
+  device_mapping: list(range(1,2))
+
+reference:
+  model_args:
+    attn_implementation: fa2
+    disable_gradient_checkpointing: true
+    dtype: bf16
+    model_type: ~
+  data_args:
+    template: qwen2_5
+  strategy_args:
+    strategy_name: hf_infer
+    strategy_config: ~
+  device_mapping: list(range(0,1))
+  infer_batch_size: 2
+
+# =============================================================================
+# ENVIRONMENT CONFIGURATION - GSM8K (Trajectory Level)
+# =============================================================================
+
+action_pattern: <answer>(.*?)</answer>
+think_action_pattern: <think>(.*?)</think>\s*<answer>(.*?)</answer>
+user_prompt_no_think_format: <answer> [your answer] </answer>
+user_prompt_think_format: <think> [Your thoughts] </think> <answer> [your answer] </answer>
+
+max_tokens_per_step: 512
+max_actions_per_traj: 3
+
+reward_normalization:
+  grouping: traj_group_id
+  method: mean_std
+
+train_env_manager:
+  format_penalty: 0.0
+  max_env_num_per_worker: 16
+  num_env_groups: 64
+  group_size: 2
+  tags: [GSM8K]
+  num_groups_partition: [64]
+
+val_env_manager:
+  max_env_num_per_worker: 32
+  num_env_groups: 128
+  group_size: 1
+  tags: [GSM8K]
+  num_groups_partition: [128]
+
+custom_envs:
+  GSM8K:
+    env_type: math
+    max_tokens_per_step: ${max_tokens_per_step}
+    user_prompt_format: ${user_prompt_no_think_format}
+    agent_system_template: |
+      You are a math problem solver. Solve the given problem step by step.
+      Provide your final numeric answer wrapped as <answer>your_answer</answer>.
+    agent_template: |
+      Problem:
+      {state}
+      You have {actions_left} attempts remaining.
+      Think carefully, show your work, then provide your answer within {max_response_length} tokens.
+    reward_template: "Your previous answer was incorrect (reward: {reward}). Try again.\n"
+    env_manager_cls: roll.pipeline.agentic.env_manager.traj_env_manager.TrajEnvManager
+    use_thread_lock: true
+    env_config:
+      env_instruction: ""
+      action_pattern: ${action_pattern}
+      max_steps: ${max_actions_per_traj}
+      dataset_name: gsm8k
+      dataset_path: /mnt/nasdata/weiyu/roll_dev/datasets/math_benchmarks/gsm8k_train.parquet
+      use_math_verify: false
+
+# =============================================================================
+# OFF-POLICY MONITORING
+# =============================================================================
+
+offpolicy_monitor:
+  enabled: true
+  save_behavior_log_probs: true
+  monitor_fresh_batch: true
+  monitor_replay_batch: true
+  monitor_interval: 1
+
+# =============================================================================
+# TRAJECTORY LOGGING
+# =============================================================================
+
+trajectory_log:
+  enabled: true
+  save_ratio: 0.1
+  max_samples_per_step: 20
+  filename: trajectory_samples.jsonl
+
+# =============================================================================
+# REPLAY BUFFER - Reward-Fresh with age_decay=1000
+# =============================================================================
+
+replay:
+  enabled: true
+  capacity: 50000
+  min_size: ${rollout_batch_size}
+  train_steps_per_env_step: 2
+  use_rollout_batch_size: true
+  sampling_mode: "trajectory"
+  storage_mode: tokens_only
+  lazy_tokenization: false
+  eviction_strategy: "fifo"
+
+  priority_function: "reward_fresh"
+  priority_exponent: 0.6
+
+  enable_age_decay: true
+  age_decay: 1000.0
+
+  importance_sampling_correction: false
+  importance_beta: 0.4

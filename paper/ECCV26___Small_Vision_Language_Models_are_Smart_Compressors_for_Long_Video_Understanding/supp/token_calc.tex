@@ -1,0 +1,20 @@
+\section{Calculation of Average Tokens per Frame}
+\label{supp:a_token_calc}
+
+For a 30-minute video sampled at 2 FPS, the total number of frames is 3,600. Since the shortest videos in LVBench exceed 30 minutes, the raw frame count of each sample is substantially larger than our maximum sampling limit $f_{\max}$. Therefore, we estimate the theoretical upper bound of the average number of tokens per frame as:
+%
+\begin{equation}
+    \text{Tokens per Frame}_{\max} = \frac{B_{\max}}{f_{\max}},
+\end{equation}
+%
+where $f_{\max}$ denotes the maximum number of sampled frames provided to the model, and $B_{\max}$ denotes the global visual token budget (context length).
+
+In Fig.~\ref{fig:teaser}(c), we report Tempo under two configurations: a 4K token budget with $f_{\max}=1024$, and a 12K token budget with $f_{\max}=2048$. Although ATA dynamically compresses the visual sequence—often resulting in substantially lower token usage in practice—the \emph{theoretical upper bound} corresponds to the scenario where the full global budget is consumed.
+%
+Because the sampled frame count for LVBench is fixed at $f_{\max}$, the resulting upper bounds are $4096/1024 = 4$ and $12288/2048 = 6$ tokens per frame, respectively.
+%
+For the baseline VideoLLaMA3~\cite{zhang2025videollama}, the official configuration uses $f_{\max}=180$ and $B_{\max}=16\text{K}$, yielding a theoretical upper bound of approximately 91 tokens per frame.
+%
+For LLaMA-ViD~\cite{li2024llama}, the reported results are taken directly from the official LVBench leaderboard.
+%
+For all other baselines shown in Fig.~\ref{fig:teaser}(c), we adopt the metrics reported in VideoChat-Flash~\cite{li2024videochat}.

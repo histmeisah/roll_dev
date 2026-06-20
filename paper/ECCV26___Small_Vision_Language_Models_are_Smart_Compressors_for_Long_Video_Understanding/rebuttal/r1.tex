@@ -1,0 +1,48 @@
+\vspace{-1.5em}
+\noindent{\textcolor{MyMagenta}{\Large\textbf{------------\quad}}}
+\textcolor{MyMagenta}{\textbf{Reviewer SaV6}} 
+\textcolor{MyMagenta}{\Large\textbf{\quad---------------}}
+
+% ----------------------------------------------------
+%                      4/4
+% ----------------------------------------------------
+% Justification:
+% 1. The submission can be stronger if the results are benchmarked against alternative SoTA compression strategies, specifically wavelet-based methods and latent self-pruning methods (e.g., XComp). Comparing TEMPO's training-heavy approach to these training-free or internal-pruning alternatives would better justify its architectural complexity. Also, publishing latency numbers and computational overhead (FLOPs) are essential to clarify the actual efficiency gains of SVLM and help us understand the trade-off between its reduced token budget and sequential processing costs.
+% ----------------------------------------------------
+% Suggestions For Rebuttal:
+% 1. Performance Comparison: Provide a direct comparison of the SCORE model against the performance of token compression models based on wavelet/frequency domains, such as Wave-ViT (Yao et al., ECCV 2022), or latent self pruning methods, such as XComp (Zheyu Zhang et al., NeurIPS 2025). If there are newer models that authors become aware in these areas, use those models for comparison.
+% 2. Publish latency numbers and computational overhead (FLOPs). This data would clarify the actual efficiency gains and help us understand the trade-off between the model's reduced token budget and its sequential processing costs.
+% ----------------------------------------------------
+% Summary for Reviewer's Expect:
+% Compare to wavelet-based methods (Wave-ViT) and latent self-pruning methods (XComp). 
+% Report latency and FLOPs.
+% ----------------------------------------------------
+
+\vspace{-0.2em}
+\noindent{\textcolor{MyMagenta}{\textbf{Q1: Baselines.}}}
+% ----------------------------------------------------
+% W1:
+% The papers completely misses some of the key works in video token compression, e.g., frequency or wavelet information based methods such as WaveVIT (Yao et al., ECCV 2022) or latent self-pruning methods such as XComp (Zheyu Zhang et al., NeurIPS 2025). Both of these methods are powerful as they don’t require an external models (like SCORE) to achieve token compression. This key insight is missing from the paper entirely.
+% ----------------------------------------------------
+% W2:
+% Wavelet-based methods are training-free, allowing them to be applied to any LLM easily without significant distribution shift. Similarly, self-pruning methods use the latent space of the model itself to achieve extreme compression of one token per frame without needing additional training. In contrast, TEMPO requires training, especially for adaptation to new query patterns and out-of-distribution videos.
+% ----------------------------------------------------
+We prioritize wall-clock latency and peak memory over FLOPs. FLOPs correlate poorly with actual efficiency given cross-architecture differences, attention optimizations, and TEMPO's dynamic sequence lengths. For hour-long videos, latency and OOM limits are the definitive deployment bottlenecks.
+% Since they prune with the LLM's attention, 
+\textbf{1) Latent Self-Pruning (Tab.~\ref{tab:rebuttal}):} We evaluate DyCoke, DyToK, XComp, and V.C.-Flash. Since they prune \textit{within} the LLM's latent space, early layers still ingest massive tokens, triggering \textbf{Attention Dilution} and high latency for long videos. Conversely, Tempo compresses segments independently \textit{pre-LLM}, shielding the LLM from massive tokens.
+%
+\textbf{2) XComp's} QC-Comp requires multiple LLM forward passes, causing 30s vision latency (Lat. V) for long videos. Even without QC-Comp, when processing matched 1024 frames, XComp's intra-LLM pruning (16K $\rightarrow$ 1K) remains slower than Tempo due to massive token burdens in early layers.
+%
+\textbf{3) Wavelet-based Methods} target \textit{spatial} redundancy, whereas long videos bottleneck on extreme \textit{temporal} redundancy. To our knowledge, no wavelet-based long video MLLMs exist to report.
+
+
+\vspace{-0.2em}
+\noindent{\textcolor{MyMagenta}{\textbf{Q2: Error Analysis.}}}
+% ----------------------------------------------------
+% W1:
+% Error Analysis and Failure cases, demonstrate qualitatively where the model has failed and what can be the potential root causes for the same.
+% ----------------------------------------------------
+% W2:
+% The paper lacks a comprehensive evaluation of failure cases where SVLM dropped the information that was essential for the LLM to respond accurately. Providing a comprehensive discussion on this issue and how to overcome it will make the paper complete.
+% ----------------------------------------------------
+Analyzing 20 randomly sampled LVBench failure cases reveals two bottlenecks: \textbf{1) SVLM Allocation (25\%):} The frontend misses subtle temporal cues, dropping ground-truth segments. Lacking explicit supervision, our zero-shot relevance prior can be optimized via RL. \textbf{2) LLM Comprehension (75\%):} Crucially, most errors occur \textit{despite} SVLM retaining essential segments. The backend LLM simply struggles with fine-grained visual reasoning, mitigable by integrating stronger LLM (\eg, 7B) or scaling per-segment budgets. More cases will be added.

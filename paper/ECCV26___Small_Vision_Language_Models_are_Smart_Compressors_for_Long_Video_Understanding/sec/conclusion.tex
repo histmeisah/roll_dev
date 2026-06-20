@@ -1,0 +1,9 @@
+\section{Conclusion}
+\label{sec:conclusion}
+We present Tempo, an efficient 6B-parameter framework that resolves the structural mismatch between massive video streams and bounded LLM context windows. Departing from query-agnostic heuristics like sparse sampling or spatiotemporal pooling, Tempo natively unifies a local SVLM and a global LLM. It casts visual token reduction as an early cross-modal distillation process, generating highly compressed, intent-aligned video representations in a single forward pass.
+%
+To enforce strict visual budgets at inference without sacrificing fine-grained evidence or overarching causality, we propose Adaptive Token Allocation (ATA). Driven by the SVLM's \emph{zero-shot relevance prior} and empirical \emph{semantic front-loading}, ATA executes $O(1)$ dynamic head truncation. It aggressively routes dense bandwidth to query-critical semantic beats while compressing redundancies into minimal temporal anchors to maintain the global storyline.
+%
+Tempo establishes new state-of-the-art performance across diverse benchmarks, notably outperforming specialized long video MLLMs and proprietary baselines on the extreme-long LVBench. Crucially, our scaling analysis reveals that optimal resource allocation depends on video duration. While a compact 4K budget acts as a highly efficient denoiser for standard long video tasks, mastering hour-long narratives necessitates scaled contextual capacities.
+%
+By compressing videos to token counts substantially below theoretical limits in practice, Tempo demonstrates a profound property: true long-form multimodal understanding is best achieved not by greedily padding expansive context windows, but through intent-driven, dynamic allocation based on semantic necessity.

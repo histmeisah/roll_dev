@@ -1,0 +1,57 @@
+\vspace{-0.3em}
+\noindent{\textcolor{MyCyan}{\Large\textbf{------------\quad}}}
+\textcolor{MyCyan}{\textbf{Reviewer xCve}} 
+\textcolor{MyCyan}{\Large\textbf{\quad---------------}}
+
+% ----------------------------------------------------
+%                      4/4
+% ----------------------------------------------------
+% Justification:
+% 1. The idea is reasonable and the results are OK but not strong. Several issues (SOTA overclaim, Ablation Table D anomaly, "training-free" wording, missing iso-budget baseline) must be addressed. If the rebuttal can clarify these points, I tend to accept. Otherwise I lean to reject.
+% ----------------------------------------------------
+% Suggestions For Rebuttal:
+% 1. Please clarify the scope of "training-free".
+% 2. Please tune down the SOTA claim with honest numbers.
+% 3. Ablation Table 2 - D is strange. Several variants - for exampe - the "Base Model Prior + explicit prompt" beat the default on 3 of 5 benchmarks. "Hard Top-K Routing" also beats ATA on LVBench. But the paper still says the default is best. Please explain why the default is picked, and show the variance.
+% ----------------------------------------------------
+\vspace{-0.2em}
+\noindent{\textcolor{MyCyan}{\textbf{Q1: Statement.}}}
+% ----------------------------------------------------
+% 1. SOTA claim is over-stated. On several benchmark the gap to existing method is within 1 point, can not really call SOTA.
+%
+% 2. Some overclaiming language in writing. Phrases like "profound property" or "fundamentally advances" are too strong
+%
+% 3. "Training-free" description is not accurate. The temporal compressor still need training, only the allocation part is training-free. Current wording mislead reader.
+% ----------------------------------------------------
+We will tone down SOTA claims, overly strong phrasing, and clarify the scope of our \textit{training-free}.
+
+% (only relevance scoring) in the final version.
+
+\vspace{-0.2em}
+\noindent{\textcolor{MyCyan}{\textbf{Q2: Ablation D.}}}
+% ----------------------------------------------------
+% Ablation Table D result look strange — removing ATA give higher score in one setting. Author not explain this, something wrong in the experiments? Clarification needed.
+% ----------------------------------------------------
+To clarify, all Ablation D experiments utilize ATA, differing only in relevance score \textit{sources} (refer to Sec. 4.3-D, App. E). We will clarify this in the revised text.
+
+\vspace{-0.2em}
+\noindent{\textcolor{MyCyan}{\textbf{Q3: Iso-budget baseline}}}
+% ----------------------------------------------------
+% If say efficient, better compare under same FLOPs / same token budget, otherwise comparison not fair. The central claim of the paper is that query-aware dynamic allocation is better than uniform allocation. But no direct comparison is provided under same total token budget.
+% ----------------------------------------------------
+Given cross-architecture FLOP inconsistencies, we evaluate under \textit{iso-token budgets}. \textbf{1) Tab. 1} matches budgets against baselines (8K: LongVU, Storm, VideoChat-Flash; 4K: BIMBA). \textbf{2) Dynamic vs. Uniform:} Ablation C isolates allocation under an identical 8K budget, proving dynamic head truncation outperforms uniform strategies (Head/Tail) across all benchmarks.
+
+\vspace{-0.2em}
+\noindent{\textcolor{MyCyan}{\textbf{Q4: Setting.}}}
+% ----------------------------------------------------
+% "Hard Top-K Routing" also beats ATA on LVBench. But the paper still says the default is best. Please explain why the default is picked, and show the variance.
+% ----------------------------------------------------
+ATA outperforms Hard Top-K across 3 of 4 benchmarks (L367). Hard Top-K's marginal LVBench win likely occurs because fewer temporal reasoning tasks mask hard frame-drop penalties. We default to ATA for its superior robustness against unpredictable queries in practice.
+
+\vspace{-0.2em}
+\noindent{\textcolor{MyCyan}{\textbf{Q5: Variance.}}}
+% ----------------------------------------------------
+% No variance reporting across multiple runs. Some key claims rest on very small margin (e.g., "Less is More" is only 0.4 point gap between 4K and 8K budget on LVBench). A standard deviation would be better.
+% ----------------------------------------------------
+Re-evaluating Tab. 1 across 3 seeds yields \textbf{$\text{std}=0$} (As we use greedy decoding for reproducibility).
+% naturally guaranteed by our greedy decoding (\texttt{do\_sample=False}).

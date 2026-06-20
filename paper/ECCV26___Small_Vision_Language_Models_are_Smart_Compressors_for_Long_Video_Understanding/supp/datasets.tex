@@ -1,0 +1,84 @@
+% \section{Detailed Dataset Compositions}
+% \label{supp:dataset_details}
+
+% In the main paper, we briefly outlined the data mixtures used across the four stages of our progressive training curriculum. Here, we provide a more detailed breakdown of the dataset compositions to facilitate reproducibility.
+
+% \myparagraph{Macro Statistics.}
+% Tab.~\ref{tab:dataset_summary} summarizes the approximate number of samples per modality (Image, Video, Text) for each training stage. This staged data mixture allows Tempo to gradually transition from spatial alignment on static images to complex spatiotemporal understanding on videos.
+
+% \begin{table}[h]
+%     \centering
+%     \caption{\textbf{Macro statistics of training data mixtures.} Approximate number of samples per modality across the four progressive training stages.}
+%     \label{tab:dataset_summary}
+%     \resizebox{1.0\textwidth}{!}{
+%     \begin{tabular}{lcccc}
+%         \toprule
+%         \textbf{Modality} & \textbf{Stage 0: Alignment} & \textbf{Stage 1: Pre-training} & \textbf{Stage 2: Broad SFT} & \textbf{Stage 3: Long-Context SFT} \\
+%         \midrule
+%         Image Samples & $\sim$558K & $\sim$2.00M & $\sim$0.93M & \multirow{3}{*}{$\sim$384K (Mixed)} \\
+%         Video Samples & - & $\sim$1.38M & $\sim$2.25M &  \\
+%         Text Samples  & - & $\sim$143K & $\sim$71K &  \\
+%         \midrule
+%         \textbf{Total Size} & \textbf{$\sim$558K} & \textbf{$\sim$3.52M} & \textbf{$\sim$3.25M} & \textbf{$\sim$384K} \\
+%         \bottomrule
+%     \end{tabular}
+%     }
+% \end{table}
+
+% \myparagraph{Detailed Source Breakdown.}
+% Below we list the primary open-source datasets incorporated in our training pipeline, grouped by modality.
+
+% \begin{itemize}
+
+% \item \textbf{Image--Text Instruction Data.}
+% For foundational vision-language alignment and general image understanding, we use LCS-558K~\cite{liu2023visual} (Stage 0), subsets of LLaVA-OneVision-1.5-Mid-Training-Data~\cite{an2025llava} (Stage 1), and subsets of LLaVA-OneVision-1.5-Instruct-Data including LLaVA-Instruct, ShareGPT-4o, ALLaVA~\cite{chen2024allava}, TextCaps~\cite{sidorov2020textcaps}, TextOCR-GPT4V~\cite{textocr-gpt4v}, RenderedText~\cite{wendler2023renderedtext}, IAM~\cite{marti2002iam}, LLaVAR~\cite{zhang2023llavar}, A-OKVQA~\cite{schwenk2022okvqa}, ChartQA~\cite{masry2022chartqa}, DocVQA~\cite{mathew2021docvqa}, ScienceQA~\cite{saikh2022scienceqa}, Sherlock~\cite{hessel2022abduction}, InfographicVQA~\cite{mathew2022infographicvqa}, DVQA~\cite{kafle2018dvqa}, ST-VQA~\cite{biten2019scene}, TabMWP~\cite{lu2022dynamic}, FigureQA~\cite{kahou2017figureqa}, GQA~\cite{ainslie2023gqa}, and TallyQA~\cite{acharya2019tallyqa}.
+
+% \item \textbf{Video--Text Alignment Data.}
+% To introduce temporal perception during Stage 1, we sample from large-scale video captioning datasets including S-MiT~\cite{monfort2021spoken}, ShareGemini~\cite{sharegemini}, Vript~\cite{yang2024vript}, and ShareGPTVideo~\cite{zhang2025direct}.
+
+% \item \textbf{Video SFT Data.}
+% Stage 2 focuses on fine-grained temporal understanding. The video SFT mixture includes ShareGPTVideo~\cite{zhang2025direct}, VidLNs~\cite{voigtlaender2023connecting}, ShareGPT-4o~\cite{cui2025comprehensive}, YouCook2~\cite{zhou2018towards}, TextVR~\cite{wu2025large}, Vript~\cite{yang2024vript}, MovieChat~\cite{song2024moviechat}, STAR~\cite{wu2024star}, CLEVRER~\cite{yi2019clevrer}, NExT-QA~\cite{xiao2021next}, VCG+~\cite{maaz2024videogpt+}, NTU RGB+D~\cite{liu2019ntu}, Perception~\cite{patraucean2023perception}, TGIF-QA~\cite{jang2017tgif}, Something-Something~\cite{goyal2017something}, LSMDC~\cite{rohrbach2017movie}, LLaVA-Video-178K~\cite{zhang2024llava}, LongVid~\cite{li2024videochat}, DiDeMo~\cite{anne2017localizing}, Ego4D~\cite{grauman2022ego4d}, COIN~\cite{tang2019coin}, HiREST~\cite{zala2023hierarchical}, QuerYD~\cite{oncescu2021queryd}, ViTT~\cite{huang2020multimodal}, and ActivityNet~\cite{caba2015activitynet}.
+
+% \item \textbf{Long-Context Extrapolation Subset.}
+% For Stage 3, rather than introducing new data distributions, we curate a long-duration subset ($\sim$384K samples) from the Stage 2 mixture. This design allows the model to focus on context scaling (up to 384 frames) while minimizing distribution shift.
+
+% \end{itemize}
+% %
+% The exact dataset mixtures and configuration files used in training will be released together with the codebase to facilitate reproducibility.
+
+\section{Dataset Statistics}
+\label{supp:dataset_details}
+
+Tab.~\ref{tab:dataset_summary} summarizes the approximate number of samples per modality (Image, Video, Text) for each training stage. This staged data mixture allows Tempo to gradually transition from spatial alignment on static images to complex spatiotemporal understanding on videos.
+
+\begin{table}[h]
+    \centering
+    \caption{\textbf{Statistics of training data mixtures.} Approximate number of samples per modality across the four progressive training stages.}
+    \label{tab:dataset_summary}
+    \resizebox{1.0\textwidth}{!}{
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Modality} & \textbf{Stage 0: Alignment} & \textbf{Stage 1: Pre-training} & \textbf{Stage 2: Broad SFT} & \textbf{Stage 3: Long-Context SFT} \\
+        \midrule
+        Image Samples & $\sim$558K & $\sim$2.00M & $\sim$0.93M & \multirow{3}{*}{$\sim$384K (Mixed)} \\
+        Video Samples & - & $\sim$1.38M & $\sim$2.25M &  \\
+        Text Samples  & - & $\sim$143K & $\sim$71K &  \\
+        \midrule
+        \textbf{Total Size} & \textbf{$\sim$558K} & \textbf{$\sim$3.52M} & \textbf{$\sim$3.25M} & \textbf{$\sim$384K} \\
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
+
+% \section{Discussions on Video Dataset Landscapes and Context Scaling Paradigms}
+% \label{supp:dataset_landscape}
+
+% In this section, we provide a broader discussion on the current landscape of video-language datasets and how it highlights two divergent paradigms for scaling Multimodal Large Language Models (MLLMs) to hour-long videos.
+
+% \myparagraph{The Short-Form Landscape and the Brute-Force Paradigm.}
+% Currently, high-quality open-source datasets and instruction-tuning mixtures (\eg, MovieChat~\cite{song2024moviechat}, Vript~\cite{yang2024vript}, and ShareGPTVideo~\cite{zhang2025direct}) predominantly focus on dense temporal annotations for clips that plateau around the 10-minute mark. True ``hour-long'' training corpora remain scarce. To bridge the gap to hour-long understanding, a prevailing paradigm---often adopted by highly scaled proprietary models (\eg, GPT-4o, Gemini 1.5 Pro)---is \emph{brute-force context scaling}. This approach relies on expanding the LLM's context window to greedily ingest exhaustive, uncompressed visual token streams. While empirically effective, this strategy is computationally exorbitant for routine inference and operates on the sub-optimal assumption that all visual frames hold equal representational density for a given query.
+
+% \myparagraph{Tempo: The Intent-Driven Sparsity Paradigm.}
+% The constraints of both available open-source data and inference compute prompted a fundamental rethinking of this brute-force scaling. As our empirical results demonstrate, feeding exhaustive token streams is not the only---nor necessarily the most elegant---path to long-form understanding. Instead of relying on greedily padded context windows, Tempo shifts the paradigm toward \emph{intent-driven sparsity}. 
+
+% By casting the local SVLM as a smart compressor, Tempo inherently recognizes that the vast majority of an hour-long video is semantically redundant for any specific query. Our evaluations reveal that Tempo routinely achieves state-of-the-art performance while compressing videos to token counts substantially below theoretical limits. This validates a profound property of our architecture: true long-form multimodal understanding is best achieved not by greedily padding expansive context windows, but through dynamic, query-aware token allocation based on strict semantic necessity.

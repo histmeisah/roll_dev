@@ -1,0 +1,16 @@
+\section{Discussion and Future Works}
+\label{sec:Discussion}
+
+While Tempo successfully demonstrates that high-efficiency, end-to-end multimodal compression can resolve the context bottlenecks of hour-long videos, this query-aware paradigm opens several critical frontiers for the community. We discuss the current limitations of our framework and possible future research directions.
+
+\vspace{1mm}
+\noindent \textbf{Eliciting Inherent Relevance Priors via Post-Training.} 
+Currently, the Adaptive Token Allocation (ATA) mechanism leverages the SVLM's zero-shot capability to accurately assess whether a video segment is useful for answering a given query. While our ablations demonstrate that this latent prior is already highly effective, it operates entirely in a zero-shot manner. A promising future direction is to explicitly elicit and amplify this inherent capability through post-training (standard supervised fine-tuning risks introducing inductive biases or overfitting to heuristic labels, while reinforcement learning can directly optimize the SVLM's routing policy against the final downstream generation accuracy). By formally optimizing the local compressor to sharpen its internal relevance judgments, we can further elevate this routing precision, potentially driving substantial performance gains across the entire framework.
+
+\vspace{1mm}
+\noindent \textbf{Autoregressive, Reasoning-Driven Compression.} 
+To ensure a highly efficient, single forward pass, Tempo currently compresses video segments using a fixed number of learnable memory tokens. Inspired by recent advancements in reasoning models that dynamically allocate test-time compute (\eg, generating internal thought tokens before halting), a more intelligent paradigm would allow the SVLM to autoregressively generate compressed tokens for a video segment, autonomously deciding when sufficient visual evidence has been gathered to stop. However, adapting this autoregressive extraction without severely bottlenecking inference latency remains a profound optimization challenge for future long video compressors.
+
+\vspace{1mm}
+\noindent \textbf{Hierarchical On-Demand Distillation for Multi-Turn Dialogue.} 
+While Tempo efficiently compresses videos via query-aware distillation, adapting to shifting user intents in multi-turn dialogues currently requires re-extracting visual features from the entire video. A highly promising frontier is transitioning towards a hierarchical, on-demand routing paradigm. By decoupling a persistent, query-agnostic global context from the intensive query-aware extraction, the global LLM could be empowered to act as an active routing agent. Rather than passively receiving features, the LLM could dynamically identify which specific temporal segments require deeper inspection, invoking the SVLM to distill high-fidelity anchors exclusively for those targeted moments.
