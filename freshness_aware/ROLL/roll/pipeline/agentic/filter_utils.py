@@ -281,6 +281,47 @@ def slice_dataproto(data: DataProto, indices: torch.Tensor) -> DataProto:
     return result
 
 
+def align_sampled_indices_to_rows(data: DataProto, sampled_indices: List[int]) -> List[int]:
+    """Expand sampled buffer slot ids so they align one-to-one with flat batch rows."""
+    if data is None or data.batch is None or "input_ids" not in data.batch:
+        return []
+
+    meta_info = data.meta_info or {}
+    if not sampled_indices:
+        sampled_indices = meta_info.get("sampled_indices", [])
+    if sampled_indices is None:
+        sampled_indices = []
+
+    sampled_indices = [int(x) for x in list(sampled_indices)]
+    if not sampled_indices:
+        return []
+
+    batch_size = int(data.batch["input_ids"].shape[0])
+    group_sizes = meta_info.get("group_sizes", None)
+
+    if group_sizes is not None and len(group_sizes) == len(sampled_indices):
+        row_indices = []
+        for slot_idx, group_size in zip(sampled_indices, group_sizes):
+            row_indices.extend([int(slot_idx)] * int(group_size))
+    elif len(sampled_indices) == batch_size:
+        row_indices = sampled_indices
+    else:
+        logger.warning(
+            "Cannot align sampled_indices to batch rows: "
+            f"indices={len(sampled_indices)}, batch_rows={batch_size}, "
+            f"group_sizes_len={len(group_sizes) if group_sizes is not None else None}"
+        )
+        return []
+
+    if len(row_indices) != batch_size:
+        logger.warning(
+            "Expanded sampled_indices length mismatch: "
+            f"expanded={len(row_indices)}, batch_rows={batch_size}"
+        )
+        return []
+    return row_indices
+
+
 def concatenate_dataprotos(data_list: List[DataProto]) -> DataProto:
     """
     Concatenate multiple DataProto objects along the batch dimension.
@@ -472,10 +513,17 @@ def filter_replay_batch_with_mini_batches(
         if mb is None:
             continue
 
-        total_sampled += current_mini_batch
+        sampled_row_count = int(mb.batch["input_ids"].shape[0])
+        row_sampled_indices = align_sampled_indices_to_rows(mb, sampled_indices)
+        total_sampled += sampled_row_count
 
         # Move to GPU and compute current policy log_probs (detached)
         mb_cuda = mb.to("cuda")
+        if mb_cuda.meta_info is None:
+            mb_cuda.meta_info = {}
+        mb_cuda.meta_info["global_step"] = global_step
+        mb_cuda.meta_info["_broadcast_non_tensor_batch"] = True
+        mb_cuda.meta_info["loss_mask_keys"] = ["response_mask"]
         mb_cuda.meta_info["old_prob_mode"] = "trajectory"
         mb_cuda.meta_info["is_offload_states"] = False
 
@@ -512,21 +560,21 @@ def filter_replay_batch_with_mini_batches(
                 valid_samples.append(mb_valid.to("cpu"))
 
                 # Track indices for PER update if applicable
-                if sampled_indices:
-                    valid_sampled_indices = [sampled_indices[i.item()] for i in valid_indices]
+                if row_sampled_indices:
+                    valid_sampled_indices = [row_sampled_indices[i.item()] for i in valid_indices]
                     all_sampled_indices.extend(valid_sampled_indices)
 
-            total_filtered += (current_mini_batch - num_valid)
+            total_filtered += (sampled_row_count - num_valid)
 
             # 更新自适应控制器（如果启用）
             if adaptive_controller is not None:
-                success_rate = num_valid / current_mini_batch if current_mini_batch > 0 else 0.0
+                success_rate = num_valid / sampled_row_count if sampled_row_count > 0 else 0.0
                 next_size = adaptive_controller.update(success_rate, target_batch_size)
-                logger.info(f"Mini-batch {attempt}: {num_valid}/{current_mini_batch} valid "
+                logger.info(f"Mini-batch {attempt}: {num_valid}/{sampled_row_count} rows valid "
                            f"(success={success_rate:.1%}, avg_ratio={filter_stats['filter/avg_ratio']:.2f}), "
                            f"next_size={next_size}")
             else:
-                logger.debug(f"Mini-batch {attempt}: {num_valid}/{current_mini_batch} valid "
+                logger.debug(f"Mini-batch {attempt}: {num_valid}/{sampled_row_count} rows valid "
                             f"(avg_ratio={filter_stats['filter/avg_ratio']:.2f}, "
                             f"max_ratio={filter_stats['filter/max_ratio']:.2f})")
 
@@ -610,8 +658,9 @@ def filter_replay_batch_with_mini_batches(
             if supplement_result is not None:
                 if isinstance(supplement_result, tuple):
                     supplement_batch, supplement_indices = supplement_result
-                    if supplement_indices and all_sampled_indices:
-                        all_sampled_indices.extend(supplement_indices)
+                    supplement_row_indices = align_sampled_indices_to_rows(supplement_batch, supplement_indices)
+                    if supplement_row_indices and all_sampled_indices:
+                        all_sampled_indices.extend(supplement_row_indices)
                 else:
                     supplement_batch = supplement_result
 
@@ -633,10 +682,31 @@ def filter_replay_batch_with_mini_batches(
 
         # Update sampled indices for PER
         if all_sampled_indices:
-            all_sampled_indices = [all_sampled_indices[i.item()] for i in indices]
+            if len(all_sampled_indices) == final_size:
+                all_sampled_indices = [all_sampled_indices[i.item()] for i in indices]
+            else:
+                logger.warning(
+                    "Cannot trim sampled_indices after filtering: "
+                    f"indices={len(all_sampled_indices)}, batch_rows={final_size}; "
+                    "dropping priority index tracking"
+                )
+                all_sampled_indices = []
 
     # Compute final statistics
     actual_size = len(final_batch.batch["input_ids"])
+    if all_sampled_indices:
+        if len(all_sampled_indices) == actual_size:
+            if final_batch.meta_info is None:
+                final_batch.meta_info = {}
+            final_batch.meta_info["sampled_indices"] = list(all_sampled_indices)
+            final_batch.meta_info.pop("group_sizes", None)
+        else:
+            logger.warning(
+                "Dropping filtered sampled_indices because they do not align with final batch: "
+                f"indices={len(all_sampled_indices)}, batch_rows={actual_size}"
+            )
+            all_sampled_indices = []
+
     stats = {
         "filter/total_sampled": total_sampled,
         "filter/total_valid": actual_size,

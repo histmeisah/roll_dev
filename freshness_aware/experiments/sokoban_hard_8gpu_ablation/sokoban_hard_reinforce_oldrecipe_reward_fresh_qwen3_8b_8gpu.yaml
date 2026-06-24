@@ -1,0 +1,64 @@
+defaults:
+  - sokoban_hard_qwen3_8b_8gpu_base
+  - _self_
+
+exp_name: "sokoban_hard_reinforce_oldrecipe_reward_fresh_qwen3_8b_8gpu"
+
+adv_estimator: "reinforce"
+ppo_epochs: 1
+loss_agg_mode: "seq-mean-token-sum"
+max_actions_per_traj: 20
+
+tracker_kwargs:
+  notes: "Reinforce++ old hard recipe reproduction: 8x8 LargerSokoban, ppo1 + Reward-FreshPER replay2"
+  tags: [agentic, roll, sokoban, hard, larger_sokoban, reinforce, old_recipe, replay, reward_fresh, qwen3_8b, 8gpu]
+
+train_env_manager:
+  format_penalty: -0.15
+  max_env_num_per_worker: 32
+  num_env_groups: 64
+  group_size: 2
+  tags: [LargerSokoban]
+  num_groups_partition: [64]
+
+custom_envs:
+  LargerSokoban:
+    env_type: sokoban
+    max_steps: ${max_actions_per_traj}
+    max_tokens_per_step: ${max_tokens_per_step}
+    user_prompt_format: ${user_prompt_no_think_format}
+    agent_system_template: "You are an agent solving a hard Sokoban puzzle. Push all boxes to target positions. Respond with exactly one of <answer>Up</answer>, <answer>Down</answer>, <answer>Left</answer>, or <answer>Right</answer>. Do not output the word Action."
+    agent_template: |
+      Current turn: {turn_idx}
+      Board state:
+      {observation}
+      Actions left: {actions_left}
+      Respond with exactly one of <answer>Up</answer>, <answer>Down</answer>, <answer>Left</answer>, or <answer>Right</answer>.
+    reward_template: "Feedback: Your previous action received reward {reward}. Revise your plan if needed."
+    env_manager_cls: roll.pipeline.agentic.env_manager.traj_env_manager.TrajEnvManager
+    use_thread_lock: true
+    env_config:
+      format_penalty: ${train_env_manager.format_penalty}
+      env_instruction: "You are solving a hard Sokoban puzzle on a larger board with multiple boxes. You are the player and need to push all boxes to targets. You can push boxes but cannot pull them. Choose exactly one action per turn: <answer>Up</answer>, <answer>Down</answer>, <answer>Left</answer>, or <answer>Right</answer>."
+      action_pattern: ${action_pattern}
+      max_steps: ${max_actions_per_traj}
+      dim_x: 8
+      dim_y: 8
+      num_boxes: 2
+      search_depth: 10
+
+offpolicy_monitor:
+  enabled: true
+  save_behavior_log_probs: true
+  monitor_fresh_batch: true
+  monitor_replay_batch: true
+  monitor_interval: 1
+
+replay:
+  enabled: true
+  group_level: false
+  priority_function: "reward_fresh"
+  train_steps_per_env_step: 2
+  enable_age_decay: true
+  age_decay: 1000.0
+  use_engine_logprobs: true

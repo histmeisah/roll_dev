@@ -261,7 +261,7 @@ class AgenticPipeline(BasePipeline):
             priority_exponent = getattr(rb_cfg, 'priority_exponent', 0.6)
             self._priority_function = priority_function
 
-            group_level = getattr(rb_cfg, 'group_level', True)
+            group_level = getattr(rb_cfg, 'group_level', False)
             logger.info(
                 f"Creating replay buffer: manager_type={manager_type}, capacity={rb_cfg.capacity}, "
                 f"priority_fn={priority_function}, priority_exponent={priority_exponent}, "
@@ -715,10 +715,17 @@ class AgenticPipeline(BasePipeline):
                         # Determine number of groups to sample
                         # For GroupReplayBuffer: batch_size = number of groups
                         # Actual trajectories = num_groups × group_size
+                        replay_buffer_type = getattr(self.replay_buffer, "buffer_type", "")
+                        is_group_replay = replay_buffer_type == "group"
                         group_size = self.pipeline_config.train_env_manager.group_size
-                        num_groups_to_sample = self.pipeline_config.rollout_batch_size // max(group_size, 1)
+                        replay_sample_size = (
+                            self.pipeline_config.rollout_batch_size // max(group_size, 1)
+                            if is_group_replay
+                            else self.pipeline_config.rollout_batch_size
+                        )
+                        replay_sample_unit = "groups" if is_group_replay else "samples"
                         replay_min_size = max(
-                            num_groups_to_sample,
+                            replay_sample_size,
                             int(getattr(rb_cfg, 'min_size', 0) or 0),
                         )
 
@@ -755,10 +762,10 @@ class AgenticPipeline(BasePipeline):
                             replay_train_steps = 0
                             with Timer(name="replay_train", logger=None) as replay_train_timer:
                                 for replay_step in range(train_steps):
-                                    if not self.replay_buffer.can_sample(num_groups_to_sample):
+                                    if not self.replay_buffer.can_sample(replay_sample_size):
                                         logger.info(
                                             f"Replay buffer insufficient for sampling "
-                                            f"(need {num_groups_to_sample} groups), skipping replay step {replay_step}"
+                                            f"(need {replay_sample_size} {replay_sample_unit}), skipping replay step {replay_step}"
                                         )
                                         break
 
@@ -771,7 +778,7 @@ class AgenticPipeline(BasePipeline):
                                             actor_train=self.actor_train,
                                             tokenizer=self.tokenizer,
                                             pipeline_config=self.pipeline_config,
-                                            target_batch_size=num_groups_to_sample,
+                                            target_batch_size=replay_sample_size,
                                             mini_batch_size=getattr(rb_cfg, 'filter_mini_batch_size', 32),
                                             ratio_clip_max=rb_cfg.ratio_clip_max,
                                             max_attempts=getattr(rb_cfg, 'filter_max_attempts', 20),
@@ -795,7 +802,7 @@ class AgenticPipeline(BasePipeline):
                                     else:
                                         # Normal path: single sample from replay buffer
                                         replay_result = self.replay_buffer.sample_for_training(
-                                            batch_size=num_groups_to_sample,
+                                            batch_size=replay_sample_size,
                                             device='cpu',
                                             sequence_length=batch.batch["input_ids"].shape[1],
                                             sample_method=getattr(rb_cfg, 'sample_method', 'uniform'),
@@ -1447,6 +1454,15 @@ class AgenticPipeline(BasePipeline):
                     return
                 priorities = np.array(
                     [priorities[offsets[i]:offsets[i + 1]].mean() for i in range(len(group_sizes))],
+                    dtype=np.float32,
+                )
+            elif priorities.shape[0] == len(sampled_indices) and len(set(sampled_indices)) < len(sampled_indices):
+                by_slot = {}
+                for slot_idx, priority in zip(sampled_indices, priorities):
+                    by_slot.setdefault(int(slot_idx), []).append(float(priority))
+                sampled_indices = list(by_slot.keys())
+                priorities = np.array(
+                    [np.mean(by_slot[idx]) for idx in sampled_indices],
                     dtype=np.float32,
                 )
             if priorities.shape[0] != len(sampled_indices):

@@ -169,11 +169,11 @@ class OffPolicyMonitorConfig:
 class ReplayConfig:
     enabled: bool = field(default=False, metadata={"help": "Enable replay buffer for agentic training."})
     group_level: bool = field(
-        default=True,
+        default=False,
         metadata={
             "help": "Use GroupReplayBuffer (store/sample by traj_group_id). "
-                    "Required for GRPO (group_size>1) to preserve group structure. "
-                    "When group_size=1, degrades to per-trajectory replay."
+                    "Set true only when the algorithm needs group-preserving replay "
+                    "(for example GRPO with group_size>1). Otherwise trajectory replay is used."
         }
     )
     capacity: int = field(default=1000000, metadata={"help": "Max number of groups (group_level=True) or trajectories stored."})

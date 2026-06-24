@@ -84,6 +84,11 @@ def compute_offpolicy_metrics(
             logger.debug("compute_offpolicy_metrics: Computing current log_probs via forward pass (fallback)")
 
             import ray
+            if current_batch.meta_info is None:
+                current_batch.meta_info = {}
+            current_batch.meta_info.setdefault("loss_mask_keys", ["response_mask"])
+            current_batch.meta_info.setdefault("_broadcast_non_tensor_batch", True)
+            current_batch.meta_info.setdefault("is_offload_states", False)
             current_lp_refs = actor_train_cluster.compute_log_probs(current_batch, blocking=False)
             current_lp_data = DataProto.materialize_concat(data_refs=current_lp_refs)
 

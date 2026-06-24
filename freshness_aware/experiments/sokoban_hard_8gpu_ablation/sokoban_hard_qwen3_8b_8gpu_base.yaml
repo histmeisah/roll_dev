@@ -199,7 +199,7 @@ trajectory_log:
 
 replay:
   enabled: false
-  group_level: true
+  group_level: false
   capacity: 50000
   min_size: ${rollout_batch_size}
   train_steps_per_env_step: 1

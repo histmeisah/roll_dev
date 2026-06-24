@@ -1,0 +1,34 @@
+defaults:
+  - sokoban_hard_qwen3_8b_8gpu_base
+  - _self_
+
+exp_name: "sokoban_hard_reinforce_ppo2_kl_fresh_filter_qwen3_8b_8gpu"
+
+adv_estimator: "reinforce"
+ppo_epochs: 2
+
+tracker_kwargs:
+  notes: "Reinforce++ ppo2 + strengthened KL-FreshPER replay1 with off-policy ratio filter"
+  tags: [agentic, roll, sokoban, hard, larger_sokoban, reinforce, ppo2, replay, kl_fresh, offpolicy_filter, qwen3_8b, 8gpu]
+
+offpolicy_monitor:
+  enabled: true
+  save_behavior_log_probs: true
+  monitor_fresh_batch: true
+  monitor_replay_batch: true
+  monitor_interval: 1
+
+replay:
+  enabled: true
+  group_level: false
+  priority_function: "kl_fresh"
+  train_steps_per_env_step: 1
+  enable_age_decay: true
+  age_decay: 300.0
+  kl_fresh_eta: 20.0
+  kl_fresh_log_ratio_clip: 5.0
+  use_engine_logprobs: true
+  enable_offpolicy_filter: true
+  ratio_clip_max: 5.0
+  filter_mini_batch_size: 32
+  filter_max_attempts: 20

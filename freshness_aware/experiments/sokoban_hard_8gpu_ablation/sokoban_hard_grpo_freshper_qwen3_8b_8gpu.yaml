@@ -20,6 +20,7 @@ offpolicy_monitor:
 
 replay:
   enabled: true
+  group_level: true
   priority_function: "kl_fresh"
   enable_age_decay: true
   use_engine_logprobs: true
