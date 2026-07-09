@@ -4,7 +4,7 @@
 # Hardware: 8 GPUs
 #   - GPU 0-3: actor_train + reference
 #   - GPU 4-7: actor_infer (vLLM)
-# Model: /mnt/project_modelware_roce/zhaojian/liangsirui/Model/Qwen3-8B
+# Model: ${oc.env:MODEL_PATH,/mnt/data/u/maw0a/models/Qwen3-8B}
 # Environment: LargerSokoban, 10x10 room, 2 boxes
 # ==============================================================================
 defaults:
@@ -14,6 +14,7 @@ defaults:
   - ../../ROLL/examples/config/deepspeed_zero2_cpuoffload@_here_
   - ../../ROLL/examples/config/deepspeed_zero3@_here_
   - ../../ROLL/examples/config/deepspeed_zero3_cpuoffload@_here_
+  - _self_
 
 hydra:
   run:
@@ -23,7 +24,7 @@ hydra:
 exp_name: "sokoban_hard_reinforce_kl_fresh_qwen3_8b_8gpu_smoke"
 seed: 42
 timestamp: ${oc.env:TRAINING_TIMESTAMP,${now:%Y%m%d_%H%M%S}}
-base_output_dir: /mnt/project_modelware_roce/zhaojian/weiyu/freshness_aware/experiments/sokoban_hard_8gpu_kl_fresh/output
+base_output_dir: ${oc.env:OUTPUT_BASE_DIR,/mnt/data/u/maw0a/python_project/freshness_aware/experiments/sokoban_hard_8gpu_kl_fresh/output}
 logging_dir: ${base_output_dir}/${timestamp}/logs
 output_dir: ${base_output_dir}/${timestamp}
 render_save_dir: ${base_output_dir}/${timestamp}/render
@@ -78,7 +79,7 @@ max_grad_norm: 1.0
 # Model configuration
 # ==============================================================================
 
-pretrain: /mnt/project_modelware_roce/zhaojian/liangsirui/Model/Qwen3-8B
+pretrain: ${oc.env:MODEL_PATH,/mnt/data/u/maw0a/models/Qwen3-8B}
 reward_pretrain: ${pretrain}
 
 actor_train:

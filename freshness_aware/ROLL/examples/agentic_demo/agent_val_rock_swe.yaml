@@ -207,7 +207,7 @@ custom_envs:
       sandbox_base_url: http://localhost:8080 # change to your own service address if needed
       user_id: "xxx"
       experiment_id: "test_tb_native"
-      test_files: ["/terminal-bench-datasets/datasets/swebench-verified"]
+      test_files: ["${oc.env:TERMINAL_BENCH_DATASETS,/mnt/data/u/maw0a/datasets/terminal-bench-datasets}/datasets/swebench-verified"]
       agent_config: ${agent_config_common}
   swebench_native_verified:
     env_type: "rock_tb_native_env"
@@ -224,5 +224,5 @@ custom_envs:
       sandbox_base_url: http://localhost:8080 # change to your own service address if needed
       user_id: "xxx"
       experiment_id: "test_tb_native"
-      test_files: ["/terminal-bench-datasets/datasets/swebench-verified"]
+      test_files: ["${oc.env:TERMINAL_BENCH_DATASETS,/mnt/data/u/maw0a/datasets/terminal-bench-datasets}/datasets/swebench-verified"]
       agent_config: ${agent_config_common}

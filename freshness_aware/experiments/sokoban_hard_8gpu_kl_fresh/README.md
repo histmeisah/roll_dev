@@ -1,34 +1,34 @@
 # Sokoban Hard KL-FreshPER 8GPU
 
-This directory is for Wuwen platform shell-window submission.
+This directory is for ORIX Slurm submission.
 
 Repo path:
 
 ```bash
-/mnt/project_modelware_roce/zhaojian/weiyu/freshness_aware
+/mnt/data/u/maw0a/python_project/freshness_aware
 ```
 
 Model path:
 
 ```bash
-/mnt/project_modelware_roce/zhaojian/liangsirui/Model/Qwen3-8B
+/mnt/data/u/maw0a/models/Qwen3-8B
 ```
 
-Run command on the allocated 8-GPU node:
+Submit an 8-GPU H100 job:
 
 ```bash
-tmux new -s roll
-source /mnt/project_modelware_roce/zhaojian/miniconda3/etc/profile.d/conda.sh
-conda activate /mnt/project_modelware_roce/zhaojian/envs/roll
-cd /mnt/project_modelware_roce/zhaojian/weiyu/freshness_aware/experiments/sokoban_hard_8gpu_kl_fresh
-bash run_sokoban_hard_kl_fresh_8gpu.sh
+cd /mnt/data/u/maw0a/python_project/freshness_aware/experiments/sokoban_hard_8gpu_kl_fresh
+sbatch sbatch_8gpu.sh
 ```
 
-Equivalent generic command:
+Equivalent explicit command:
 
 ```bash
-bash run_8gpu.sh sokoban_hard_reinforce_kl_fresh_qwen3_8b_8gpu_smoke
+sbatch sbatch_8gpu.sh sokoban_hard_reinforce_kl_fresh_qwen3_8b_8gpu_smoke
 ```
+
+Use `MODEL_PATH=/path/to/Qwen3-8B sbatch sbatch_8gpu.sh` if the model is stored
+somewhere else.
 
 Key settings:
 
@@ -37,7 +37,7 @@ Key settings:
 - GPUs: train/reference on 0-3, vLLM inference on 4-7
 - Replay priority: `kl_fresh`
 - Behavior logprobs: `replay.use_engine_logprobs: true`
-- Smoke length: `max_steps: 50`
+- Current length: `max_steps: 400`
 
-For a longer formal run, increase `max_steps` to 400 and consider changing
-`replay.train_steps_per_env_step` from 1 to 2.
+This directory is a standalone KL-FreshPER Config-A run. The final two
+ppo2/filter ablation runs live in `../sokoban_hard_8gpu_ablation`.

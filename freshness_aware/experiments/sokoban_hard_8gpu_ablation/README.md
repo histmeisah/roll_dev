@@ -50,36 +50,48 @@ replay.enable_offpolicy_filter: true
 replay.ratio_clip_max: 5
 ```
 
-Run one experiment on the Wuwen 8-GPU shell:
+Run one experiment on ORIX Slurm, 1 node with 8 H100 GPUs:
 
 ```bash
-tmux new -s roll
-source /mnt/project_modelware_roce/zhaojian/miniconda3/etc/profile.d/conda.sh
-conda activate /mnt/project_modelware_roce/zhaojian/envs/roll
-cd /mnt/project_modelware_roce/zhaojian/weiyu/freshness_aware/experiments/sokoban_hard_8gpu_ablation
-bash run_reinforce_baseline.sh
+cd /mnt/data/u/maw0a/python_project/freshness_aware/experiments/sokoban_hard_8gpu_ablation
+sbatch sbatch_8gpu.sh sokoban_hard_reinforce_ppo2_reward_fresh_filter_qwen3_8b_8gpu
 ```
 
-Recommended next submission:
+The final two 400-step submissions are:
 
 ```bash
-bash run_reinforce_ppo2_reward_fresh_filter.sh
+sbatch sbatch_8gpu.sh sokoban_hard_reinforce_ppo2_reward_fresh_filter_qwen3_8b_8gpu
+sbatch sbatch_8gpu.sh sokoban_hard_reinforce_ppo2_kl_fresh_filter_qwen3_8b_8gpu
 ```
 
-For a non-interactive Wuwen job command, do not start `tmux`; submit the shell
-body directly:
+Submit both:
 
 ```bash
-source /mnt/project_modelware_roce/zhaojian/miniconda3/etc/profile.d/conda.sh
-conda activate /mnt/project_modelware_roce/zhaojian/envs/roll
-cd /mnt/project_modelware_roce/zhaojian/weiyu/freshness_aware/experiments/sokoban_hard_8gpu_ablation
-bash run_reinforce_baseline.sh
+bash sbatch_final_two_400.sh
 ```
+
+Default submission is the recommended next run:
+
+```bash
+sbatch sbatch_8gpu.sh
+```
+
+Runtime defaults on ORIX:
+
+- Slurm partition/QoS: `pi-elhosemh`
+- GPU request: `gpu:nvidia_h100_80gb_hbm3:8`
+- Conda env: `/mnt/data/u/maw0a/miniconda3/envs/roll`
+- Repo root: `/mnt/data/u/maw0a/python_project/freshness_aware`
+- Model path default: `/mnt/data/u/maw0a/models/Qwen3-8B`
+- Override model path with `MODEL_PATH=/path/to/Qwen3-8B sbatch sbatch_8gpu.sh ...`
 
 Run all four sequentially:
 
 ```bash
-bash run_all_four.sh
+sbatch sbatch_8gpu.sh sokoban_hard_reinforce_baseline_qwen3_8b_8gpu
+sbatch sbatch_8gpu.sh sokoban_hard_grpo_baseline_qwen3_8b_8gpu
+sbatch sbatch_8gpu.sh sokoban_hard_reinforce_freshper_qwen3_8b_8gpu
+sbatch sbatch_8gpu.sh sokoban_hard_grpo_freshper_qwen3_8b_8gpu
 ```
 
 Sync the latest offline W&B run:
@@ -92,5 +104,5 @@ bash sync_latest_wandb.sh
 Outputs are written under:
 
 ```text
-/mnt/project_modelware_roce/zhaojian/weiyu/freshness_aware/experiments/sokoban_hard_8gpu_ablation/output
+/mnt/data/u/maw0a/python_project/freshness_aware/experiments/sokoban_hard_8gpu_ablation/output
 ```

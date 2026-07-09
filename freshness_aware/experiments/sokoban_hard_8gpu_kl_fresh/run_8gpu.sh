@@ -21,14 +21,14 @@ if [ ! -f "${CONFIG_NAME}.yaml" ]; then
     exit 1
 fi
 
-export REPO_ROOT="${REPO_ROOT:-/mnt/project_modelware_roce/zhaojian/weiyu/freshness_aware}"
+export REPO_ROOT="${REPO_ROOT:-/mnt/data/u/maw0a/python_project/freshness_aware}"
 export ROLL_PATH="${ROLL_PATH:-${REPO_ROOT}/ROLL}"
-export MODEL_ROOT="${MODEL_ROOT:-/mnt/project_modelware_roce/zhaojian/liangsirui/Model}"
+export MODEL_ROOT="${MODEL_ROOT:-/mnt/data/u/maw0a/models}"
 export MODEL_PATH="${MODEL_PATH:-${MODEL_ROOT}/Qwen3-8B}"
 export PYTHONPATH="$ROLL_PATH:$PYTHONPATH"
 
-CONDA_SH="${CONDA_SH:-/mnt/project_modelware_roce/zhaojian/miniconda3/etc/profile.d/conda.sh}"
-CONDA_ENV="${CONDA_ENV:-/mnt/project_modelware_roce/zhaojian/envs/roll}"
+CONDA_SH="${CONDA_SH:-/mnt/data/u/maw0a/miniconda3/etc/profile.d/conda.sh}"
+CONDA_ENV="${CONDA_ENV:-/mnt/data/u/maw0a/miniconda3/envs/roll}"
 if [ -f "$CONDA_SH" ]; then
     source "$CONDA_SH"
     conda activate "$CONDA_ENV"
@@ -46,6 +46,8 @@ fi
 
 if [ ! -d "$MODEL_PATH" ]; then
     echo "Error: MODEL_PATH does not exist: ${MODEL_PATH}"
+    echo "Set MODEL_PATH to an existing Qwen3-8B checkout, or download it before submitting:"
+    echo "  huggingface-cli download Qwen/Qwen3-8B --local-dir ${MODEL_PATH}"
     exit 1
 fi
 
@@ -67,13 +69,17 @@ export VLLM_ENABLE_V1_MULTIPROCESSING=0
 export VLLM_USE_V1=0
 
 export WANDB_MODE=offline
-export WANDB_API_KEY=local
-export HF_DATASETS_OFFLINE=1
-export HF_HUB_OFFLINE=1
+export WANDB_API_KEY="${WANDB_API_KEY:-local}"
+export HF_HOME="${HF_HOME:-/mnt/data/u/maw0a/hf_cache}"
+export HF_HUB_CACHE="${HF_HUB_CACHE:-${HF_HOME}/hub}"
+export HF_DATASETS_CACHE="${HF_DATASETS_CACHE:-${HF_HOME}/datasets}"
+export HF_DATASETS_OFFLINE="${HF_DATASETS_OFFLINE:-1}"
+export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 export TRAINING_TIMESTAMP="$TIMESTAMP"
-OUTPUT_DIR="$SCRIPT_DIR/output/$TIMESTAMP"
+export OUTPUT_BASE_DIR="${OUTPUT_BASE_DIR:-$SCRIPT_DIR/output}"
+OUTPUT_DIR="$OUTPUT_BASE_DIR/$TIMESTAMP"
 mkdir -p "$OUTPUT_DIR/logs" "$OUTPUT_DIR/models" "$OUTPUT_DIR/render" "$OUTPUT_DIR/wandb"
 export WANDB_DIR="$OUTPUT_DIR/wandb"
 
@@ -116,8 +122,15 @@ echo ""
 echo "GPU availability:"
 if command -v nvidia-smi >/dev/null 2>&1; then
     nvidia-smi --query-gpu=index,name,memory.total,memory.free --format=csv
+    GPU_COUNT="$(nvidia-smi -L | wc -l | tr -d ' ')"
+    if [ "${GPU_COUNT:-0}" -lt 8 ] && [ "${ALLOW_FEWER_GPUS:-0}" != "1" ]; then
+        echo "Error: expected 8 visible GPUs, got ${GPU_COUNT}."
+        echo "Submit with sbatch_8gpu.sh or set ALLOW_FEWER_GPUS=1 only for debugging."
+        exit 1
+    fi
 else
     echo "nvidia-smi not found"
+    exit 1
 fi
 
 echo ""
