@@ -20,8 +20,8 @@ if [ -z "$RUN_DIR" ] || [ ! -d "$RUN_DIR" ]; then
     exit 1
 fi
 
-CONDA_SH="${CONDA_SH:-/mnt/project_modelware_roce/zhaojian/miniconda3/etc/profile.d/conda.sh}"
-CONDA_ENV="${CONDA_ENV:-/mnt/project_modelware_roce/zhaojian/envs/roll}"
+CONDA_SH="${CONDA_SH:-/mnt/data/u/maw0a/miniconda3/etc/profile.d/conda.sh}"
+CONDA_ENV="${CONDA_ENV:-/mnt/data/u/maw0a/miniconda3/envs/roll}"
 source "$CONDA_SH"
 conda activate "$CONDA_ENV"
 

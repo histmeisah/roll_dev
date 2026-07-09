@@ -161,12 +161,19 @@ class StepReplayBuffer(BaseReplayBuffer):
             response_mask = batch.batch["response_mask"][i].cpu().numpy()
             prompt_mask = batch.batch["prompt_mask"][i].cpu().numpy()
             scores = batch.batch["scores"][i].cpu().numpy()
-            penalty = float(batch.batch["penalty"][i].cpu().item())
+            # Upstream rollout batches may omit penalty; keep old buffers readable
+            # by treating the missing step-level penalty as neutral.
+            if "penalty" in batch.batch:
+                penalty = float(batch.batch["penalty"][i].cpu().item())
+            else:
+                penalty = 0.0
             
             # Extract behavior policy log_probs if available
             behavior_log_probs = None
             if "behavior_log_probs" in batch.batch:
                 behavior_log_probs = batch.batch["behavior_log_probs"][i].cpu().numpy()
+            elif "infer_logprobs" in batch.batch:
+                behavior_log_probs = batch.batch["infer_logprobs"][i].cpu().numpy()
             else:
                 # CRITICAL FIX: If no behavior_log_probs, create zeros with length input_ids - 1
                 # to align with next-token prediction semantics
